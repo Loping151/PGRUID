@@ -10,7 +10,6 @@ from gsuid_core.logger import logger
 
 from ..utils.api.requests import pgr_api
 from ..pgr_config import PREFIX
-from ..pgr_config.config_default import PGRConfig
 from ..utils.path import ANN_CACHE_PATH, BAKE_PATH
 
 # 直接从 xwuid 导入渲染工具和模板
@@ -55,8 +54,8 @@ def format_post_time(post_time: str) -> int:
 
 
 async def ann_list_card() -> bytes:
-    use_html_render = PGRConfig.get_config("UseHtmlRender").data
-    if not PLAYWRIGHT_AVAILABLE and not PGRConfig.get_config("RemoteRenderEnable").data:
+    use_html_render = WutheringWavesConfig.get_config("UseHtmlRender").data
+    if not PLAYWRIGHT_AVAILABLE and not WutheringWavesConfig.get_config("RemoteRenderEnable").data:
         raise Exception("[PGRUID] Playwright 未安装且未配置外置渲染")
     if not use_html_render:
         raise Exception("[PGRUID] HTML 渲染已关闭")
@@ -148,8 +147,8 @@ async def ann_list_card() -> bytes:
 async def ann_detail_card(
     ann_id: Union[int, str], is_check_time=False
 ) -> Union[bytes, str, List[bytes]]:
-    use_html_render = PGRConfig.get_config("UseHtmlRender").data
-    if not PLAYWRIGHT_AVAILABLE and not PGRConfig.get_config("RemoteRenderEnable").data:
+    use_html_render = WutheringWavesConfig.get_config("UseHtmlRender").data
+    if not PLAYWRIGHT_AVAILABLE and not WutheringWavesConfig.get_config("RemoteRenderEnable").data:
         return "Playwright 未安装且未配置外置渲染"
     if not use_html_render:
         return "HTML 渲染已关闭"

@@ -166,8 +166,7 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
     }
 
     if not PLAYWRIGHT_AVAILABLE:
-        from ..pgr_config.config_default import PGRConfig
-        if not PGRConfig.get_config("RemoteRenderEnable").data:
+        if not WutheringWavesConfig.get_config("RemoteRenderEnable").data:
             return "[战双] Playwright 未安装且未配置外置渲染"
 
     img = await render_html(pgr_stronghold_templates, "pgr_stronghold.html", context)

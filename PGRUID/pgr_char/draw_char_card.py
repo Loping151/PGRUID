@@ -374,8 +374,7 @@ async def draw_char_card(
     context["stars"] = "★" * char.quality
 
     if not PLAYWRIGHT_AVAILABLE:
-        from ..pgr_config.config_default import PGRConfig
-        if not PGRConfig.get_config("RemoteRenderEnable").data:
+        if not WutheringWavesConfig.get_config("RemoteRenderEnable").data:
             return "[战双] Playwright 未安装且未配置外置渲染"
 
     _TEMPLATE_DIR = Path(__file__).parent
