@@ -27,10 +27,15 @@ git clone https://github.com/Loping151/PGRUID
 
 ## 丨其他
 
-+ 本项目仅供学习使用，请勿用于商业用途。使用本插件视为同意提供用户凭据，用户凭据仅用于查询游戏数据。使用本插件造成的任何数据滥用行为与作者无关。
++ 本项目仅供学习使用，请勿用于商业用途。使用本插件视为同意提供用户凭据，用户凭据仅用于查询游戏数据。使用本插件造成的任何数据滥用行为与作者无关。**禁止** [XutheringWavesUID](https://github.com/Loping151/XutheringWavesUID) 中列出的Bot相关开发者使用或参考本仓库。
 
 + [GPL-3.0 License](https://github.com/Loping151/PGRUID/blob/main/LICENSE)
 
 ## 致谢
 - [XutheringWavesUID](https://github.com/Loping151/XutheringWavesUID) — 核心基础设施
-- [gsuid_core](https://github.com/Genshin-bots/gsuid_core) — Bot 框架
+- [GSUID CORE](https://github.com/Genshin-bots/gsuid_core) — Bot 框架
+
+## 最后
+
+- Wuyi是对的，我需要KuroCORE
+- 居然连一个上下文窗口都没用完，智能工人还是太强大了

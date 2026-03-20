@@ -1,3 +1,4 @@
+import re
 from typing import Any, List
 
 from gsuid_core.sv import SV
@@ -7,13 +8,16 @@ from gsuid_core.logger import logger
 
 from ..pgr_config import PREFIX
 
-# 直接复用 xwuid 的数据库
+# 直接复用 xwuid 的数据库和登录
 from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
 from XutheringWavesUID.XutheringWavesUID.utils.constants import PGR_GAME_ID, WAVES_GAME_ID
 from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.deal import add_cookie, get_cookie
-from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.login_succ import login_success_msg, _build_bind_summary
+from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.login_succ import login_success_msg
+from XutheringWavesUID.XutheringWavesUID.wutheringwaves_login.login import code_login, page_login
+from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import PREFIX as XW_PREFIX
 
 pgr_bind_uid = SV("战双绑定UID", priority=10)
+pgr_login = SV("战双登录")
 pgr_token = SV("战双Token", priority=5)
 pgr_get_token = SV("战双获取Token", area="DIRECT")
 
@@ -25,6 +29,33 @@ async def _send_text(bot: Bot, ev: Event, msg: str):
         at_sender=at_sender,
     )
 
+
+# ===== 登录 =====
+
+@pgr_login.on_command(("登录", "登陆", "登入", "login", "dl"), block=True)
+async def pgr_login_msg(bot: Bot, ev: Event):
+    at_sender = True if ev.group_id else False
+
+    await bot.send(
+        (" " if at_sender else "")
+        + f"[战双] 如已使用过【{XW_PREFIX}登录】则无需再次登录！",
+        at_sender=at_sender,
+    )
+
+    text = re.sub(r'["\n\t ]+', "", ev.text.strip())
+    text = text.replace("，", ",")
+    if text == "":
+        return await page_login(bot, ev)
+    elif "," in text:
+        return await code_login(bot, ev, text)
+    elif text.isdigit():
+        return
+
+    msg = f"[战双] 账号登录失败\n请重新输入命令【{PREFIX}登录】进行登录"
+    return await bot.send((" " if at_sender else "") + msg, at_sender=at_sender)
+
+
+# ===== 绑定/切换/删除/查看 =====
 
 @pgr_bind_uid.on_command(
     (
@@ -101,10 +132,11 @@ async def pgr_bind_msg(bot: Bot, ev: Event):
         if res != 0:
             return await _send_text(bot, ev, f"[战双] 尚未绑定该UID[{uid}]")
 
-        # 同时删除 WavesUser 记录
         await WavesUser.delete_cookie(uid, qid, ev.bot_id, game_id=PGR_GAME_ID)
         return await _send_text(bot, ev, f"[战双] 删除UID[{uid}]成功")
 
+
+# ===== 添加/获取 Token =====
 
 def _get_ck_and_devcode(text: str, split_str: str = ",") -> tuple:
     ck, devcode = "", ""
