@@ -60,8 +60,8 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
 
     if not stronghold_data:
         return "[战双] 获取诺曼复兴战数据失败"
-    if not stronghold_data.isUnlock:
-        return "[战双] 诺曼复兴战未解锁"
+    if not stronghold_data.isUnlock or not stronghold_data.challengeArea:
+        return "[战双] 诺曼复兴战暂无数据"
 
     raw = stronghold_data.model_dump()
 

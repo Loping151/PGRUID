@@ -176,8 +176,8 @@ class PGRPrisonerCageData(BaseModel):
     isOpen: bool = False
     isUnlock: bool = False
     chooseArea: bool = False
-    challengeArea: str = ""
-    challengeLevel: str = ""
+    challengeArea: Optional[str] = ""
+    challengeLevel: Optional[str] = ""
     prisonerCage: Optional[PGRPrisonerCageInfo] = None
 
 
@@ -194,8 +194,8 @@ class PGRAreaData(BaseModel):
     show: bool = False
     isOpen: bool = False
     isUnlock: bool = False
-    groupName: str = ""
-    groupLevel: str = ""
+    groupName: Optional[str] = ""
+    groupLevel: Optional[str] = ""
     areaInfo: Optional[PGRAreaInfo] = None
 
 
@@ -223,9 +223,9 @@ class PGRTransfiniteData(BaseModel):
     show: bool = False
     isOpen: bool = False
     isUnlock: bool = False
-    operatorArea: str = ""
-    challengeArea: str = ""
-    challengeLevel: str = ""
+    operatorArea: Optional[str] = ""
+    challengeArea: Optional[str] = ""
+    challengeLevel: Optional[str] = ""
     bossIconUrl: str = ""
     operatorCount: int = 0
     process: int = 0
@@ -249,7 +249,7 @@ class PGRGroupBuff(BaseModel):
 
 class PGRStrongholdGroup(BaseModel):
     groupId: str = ""
-    groupName: str = ""
+    groupName: Optional[str] = ""
     order: int = 0
     isUnlock: bool = False
     pass_: bool = Field(default=False, alias="pass")
@@ -269,8 +269,8 @@ class PGRStrongholdData(BaseModel):
     show: bool = False
     isOpen: bool = False
     isUnlock: bool = False
-    challengeArea: str = ""
-    challengeLevel: str = ""
+    challengeArea: Optional[str] = ""
+    challengeLevel: Optional[str] = ""
     groupList: List[PGRStrongholdGroup] = Field(default_factory=list)
     teamList: List[PGRStrongholdTeam] = Field(default_factory=list)
 

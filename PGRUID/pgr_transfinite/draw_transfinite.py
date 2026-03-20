@@ -52,8 +52,8 @@ async def draw_transfinite_img(ev, uid: str) -> Union[bytes, str]:
 
     if not trans_data:
         return "[战双] 获取历战映射数据失败"
-    if not trans_data.isUnlock:
-        return "[战双] 历战映射未解锁"
+    if not trans_data.isUnlock or not trans_data.challengeArea:
+        return "[战双] 历战映射暂无数据"
 
     # 下载 boss 图标 + 角色图标
     download_tasks = []

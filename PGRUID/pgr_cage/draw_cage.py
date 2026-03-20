@@ -64,8 +64,8 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
 
     if not cage_data:
         return "[战双] 获取幻痛囚笼数据失败"
-    if not cage_data.prisonerCage:
-        return "[战双] 幻痛囚笼未解锁"
+    if not cage_data.prisonerCage or not cage_data.challengeArea:
+        return "[战双] 幻痛囚笼暂无数据"
 
     cage = cage_data.prisonerCage
 

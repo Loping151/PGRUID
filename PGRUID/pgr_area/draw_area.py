@@ -60,8 +60,8 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
 
     if not area_data:
         return "[战双] 获取纷争战区数据失败"
-    if not area_data.areaInfo:
-        return "[战双] 纷争战区未解锁"
+    if not area_data.areaInfo or not area_data.groupName:
+        return "[战双] 纷争战区暂无数据"
 
     area = area_data.areaInfo
     raw = area_data.model_dump()
