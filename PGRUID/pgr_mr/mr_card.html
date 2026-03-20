@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>战双体力</title>
+<style>
+    @import url('{{ font_css_url }}');
+
+    :root {
+        --bg-light: #f1f4f8;
+        --header-dark: #1f314d;
+        --text-main: #2b2b2b;
+        --text-gray: #8c939d;
+        --primary-blue: #1b73c9;
+        --accent-red: #d13d33;
+        --rank-gold: #c3924f;
+        --border-color: #dce3eb;
+        --card-bg: #ffffff;
+        --urgent-red: #ff4d4f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans SC', -apple-system, sans-serif; }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #0c0e13;
+        background-image: url('{{ content_bg_url }}');
+        background-size: cover;
+        background-position: center;
+    }
+
+    /* 修改：加宽容器以容纳右侧立绘 (540px -> 800px) */
+    .container {
+        width: 800px; 
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* ===== Header (不变，自动撑满 800px 宽度) ===== */
+    .header {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 24px 24px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .header-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+    .avatar-wrap {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        flex-shrink: 0;
+        z-index: 1;
+    }
+    .avatar-img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 68px;
+        height: 68px;
+        object-fit: cover;
+        border-radius: 50%;
+        z-index: 2;
+    }
+    .avatar-box {
+        position: absolute;
+        top: 0; left: 0;
+        width: 120px;
+        height: 120px;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .header-info {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .header-name {
+        font-size: 28px;
+        font-weight: bold;
+        color: #fff;
+        letter-spacing: 1px;
+    }
+    .header-level {
+        display: flex;
+        align-items: center;
+        background: rgba(25, 30, 40, 0.8);
+        border: 1px solid rgba(80, 100, 120, 0.6);
+        border-radius: 4px;
+        padding: 3px 10px;
+        font-size: 16px;
+    }
+    .level-label { color: #9baec2; margin-right: 4px; }
+    .level-val { color: #e58d3c; font-weight: bold; }
+    .header-row-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .header-row-bottom {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 18px;
+        color: #8c9eb5;
+    }
+    .header-uid {
+        font-family: 'JetBrains Mono', 'Oswald', monospace;
+        letter-spacing: 0.5px;
+    }
+    .header-divider { color: #4a5a75; margin: 0 4px; }
+
+    /* ===== Section Title Bar (不变，自动撑满) ===== */
+    .section-title-bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        border-radius: 6px;
+    }
+    .section-title-bar img { width: 100%; display: block; }
+    .section-title-bar span {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+        font-size: 20px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        letter-spacing: 2px;
+    }
+
+    /* ===== 新增：主体内容左右分栏包裹层 ===== */
+    .main-layout {
+        display: flex;
+        gap: 0;
+        align-items: stretch;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%);
+    }
+
+    /* 左侧：原有的统计数据流 */
+    .mr-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    /* 右侧：立绘区域 */
+    .portrait-panel {
+        width: 240px;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+    }
+
+
+    .portrait-img {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+    }
+
+    /* ==== 以下为原数据卡片样式（保持不变） ==== */
+    .serum-row {
+        display: flex;
+        align-items: center;
+        padding: 0;
+    }
+    .serum-icon-wrapper { flex-shrink: 0; margin-right: 18px; }
+    .serum-icon { width: 72px; height: 72px; }
+    .serum-info { flex: 1; }
+    .serum-value-row { display: flex; align-items: baseline; }
+    .serum-label { font-size: 22px; font-weight: 600; color: var(--text-main); margin-right: 10px; }
+    .serum-current { font-size: 42px; font-weight: bold; font-family: 'Oswald', 'JetBrains Mono', sans-serif; color: var(--primary-blue); }
+    .serum-current.urgent { color: var(--urgent-red); }
+    .serum-max { font-size: 24px; font-family: 'Oswald', 'JetBrains Mono', sans-serif; color: var(--text-gray); margin-left: 2px; }
+    .serum-time { font-size: 18px; color: var(--text-gray); margin-top: 4px; }
+    .serum-time.urgent { color: var(--urgent-red); font-weight: 600; }
+    .serum-progress { width: 100%; height: 6px; background: #e5e9f0; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+    .serum-progress-fill { height: 100%; border-radius: 3px; }
+    .serum-divider { width: 1px; height: 56px; background: #d1d8df; margin: 0 22px; flex-shrink: 0; }
+    .commission-section { flex-shrink: 0; }
+    .comm-title { font-size: 22px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+    .comm-stats { font-size: 18px; color: var(--text-gray); display: flex; gap: 16px; }
+    .comm-stats span strong { color: var(--primary-blue); font-size: 24px; font-family: 'Oswald', 'JetBrains Mono', sans-serif; margin-left: 4px; }
+
+    .daily-card { padding: 0; border-top: 1px solid var(--border-color); padding-top: 16px; }
+    .daily-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .daily-title { font-size: 22px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    .daily-title svg { width: 24px; height: 24px; fill: var(--primary-blue); flex-shrink: 0; }
+    .daily-value .current { font-size: 32px; font-weight: bold; font-family: 'Oswald', 'JetBrains Mono', sans-serif; color: var(--primary-blue); }
+    .daily-value .max { font-size: 20px; font-family: 'Oswald', 'JetBrains Mono', sans-serif; color: var(--text-gray); }
+    .progress-bar-container { width: 100%; height: 6px; background: #e5e9f0; border-radius: 3px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: var(--primary-blue); border-radius: 3px; }
+
+    .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .task-card { padding: 16px; position: relative; border: 1px solid var(--border-color); border-radius: 4px; }
+    .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .task-title { font-size: 20px; font-weight: 600; color: var(--text-main); }
+    .task-time { font-size: 16px; color: var(--text-gray); }
+    .task-time.urgent { color: var(--urgent-red); font-weight: 600; }
+    .task-progress { margin-bottom: 6px; }
+    .task-progress .current { font-size: 30px; font-weight: bold; font-family: 'Oswald', 'JetBrains Mono', sans-serif; color: var(--primary-blue); }
+    .task-progress .current.done { color: #27ae60; }
+    .task-progress .max { font-size: 18px; color: var(--text-gray); }
+    .task-bottom-line { position: absolute; bottom: 0; left: 16px; right: 16px; height: 4px; border-radius: 2px; }
+    .task-bottom-line.done { background: #27ae60; }
+    .task-bottom-line.pending { background: var(--primary-blue); }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <img src="{{ header_bg_url }}" class="header-bg">
+        <div class="avatar-wrap">
+            {% if avatar_url %}
+            <img src="{{ avatar_url }}" class="avatar-img">
+            {% endif %}
+            <img src="{{ avatar_frame_url }}" class="avatar-box">
+        </div>
+        <div class="header-info">
+            <div class="header-row-top">
+                <div class="header-name">{{ user_name }}</div>
+                <div class="header-level">
+                    <span class="level-label">勋阶</span>
+                    <span class="level-val">{{ rank }}</span>
+                </div>
+            </div>
+            <div class="header-row-bottom">
+                <span class="header-server">{{ server_name }}</span>
+                <span class="header-divider">|</span>
+                <span class="header-uid">ID:{{ uid }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title-bar">
+        <img src="{{ title_bar_url }}">
+        <span>日程助手</span>
+    </div>
+
+    <div class="main-layout">
+        
+        <div class="mr-content">
+            <div class="serum-row">
+                <div class="serum-icon-wrapper">
+                    <img src="{{ serum_icon_url }}" class="serum-icon">
+                </div>
+                <div class="serum-info">
+                    <div class="serum-value-row">
+                        <span class="serum-label">血清</span>
+                        <span class="serum-current {% if serum.urgent %}urgent{% endif %}">{{ serum.cur }}</span>
+                        <span class="serum-max">/ {{ serum.total }}</span>
+                    </div>
+                    <div class="serum-time {% if serum.urgent %}urgent{% endif %}">{{ serum.recovery_text }}</div>
+                    <div class="serum-progress">
+                        <div class="serum-progress-fill" style="width: {{ serum.percent }}%; background-color: {{ serum.color }};"></div>
+                    </div>
+                </div>
+
+                <div class="serum-divider"></div>
+
+                <div class="commission-section">
+                    <div class="comm-title">委托情况</div>
+                    <div class="comm-stats">
+                        <span>已完成 <strong>{{ commission.done }}</strong></span>
+                        <span>待领取 <strong>{{ commission.pending }}</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="daily-card">
+                <div class="daily-top">
+                    <div class="daily-title"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M 10 58 Q 20 48 30 41 L 48 63 L 66 39 L 58 35 L 84 21 L 82 49 L 74 45 L 48 79 L 30 57 Q 20 58 10 58 Z"/></svg>每日活跃</div>
+                    <div class="daily-value">
+                        <span class="current">{{ active.cur }}</span><span class="max"> / {{ active.total }}</span>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: {{ active.percent }}%;"></div>
+                </div>
+            </div>
+
+            <div class="task-grid">
+                {% for task in tasks %}
+                <div class="task-card">
+                    <div class="task-header">
+                        <div class="task-title">{{ task.name }}</div>
+                        <div class="task-time {% if task.urgent %}urgent{% endif %}">{{ task.time_text }}</div>
+                    </div>
+                    <div class="task-progress">
+                        <span class="current {% if task.done %}done{% endif %}">{{ task.cur_text }}</span><span class="max">{{ task.max_text }}</span>
+                    </div>
+                    <div class="task-bottom-line {% if task.done %}done{% else %}pending{% endif %}"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="portrait-panel">
+            <img src="{{ portrait_url }}" class="portrait-img" alt="立绘">
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

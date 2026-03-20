@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>战双诺曼复兴战</title>
+<style>
+    @import url('{{ font_css_url }}');
+
+    :root {
+        --primary-blue: #186bb5;
+        --text-dark: #333;
+        --text-gray: #666;
+        --bg-light-blue: #e8f1f8;
+        --border-color: #c9ddec;
+        --clear-blue: #1a7bc9;
+        --icon-green: #67b78f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        margin: 0; padding: 0;
+        background-color: #0c0e13;
+        background-image: url('{{ contentBgB64 }}');
+        background-size: cover;
+        font-family: 'Noto Sans SC', sans-serif;
+        color: var(--text-dark);
+    }
+
+    .container { width: 1000px; padding: 40px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Header */
+    .header { position: relative; display: flex; align-items: center; gap: 30px; padding: 36px; border-radius: 8px; overflow: hidden; }
+    .header-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+    .avatar-wrap { position: relative; width: 170px; height: 170px; flex-shrink: 0; z-index: 1; }
+    .avatar-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 120px; height: 120px; object-fit: cover; border-radius: 50%; z-index: 2; }
+    .avatar-box { position: absolute; top: 0; left: 0; width: 170px; height: 170px; pointer-events: none; z-index: 1; }
+    .header-info { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+    .header-name { font-size: 44px; font-weight: bold; color: #fff; }
+    .header-row-top { display: flex; align-items: center; gap: 16px; }
+    .header-level { display: flex; align-items: center; background: rgba(25,30,40,0.8); border: 1px solid rgba(80,100,120,0.6); border-radius: 4px; padding: 6px 14px; font-size: 22px; }
+    .level-label { color: #9baec2; margin-right: 6px; }
+    .level-val { color: #e58d3c; font-weight: bold; }
+    .header-row-bottom { display: flex; align-items: center; gap: 12px; font-size: 24px; color: #8c9eb5; }
+    .header-uid { font-family: 'JetBrains Mono', monospace; }
+    .header-divider { color: #4a5a75; margin: 0 4px; }
+
+    /* Title Bar */
+    .section-title-bar { position: relative; display: flex; align-items: center; overflow: hidden; border-radius: 6px; }
+    .section-title-bar img { width: 100%; display: block; }
+    .section-title-bar span { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); z-index: 1; font-size: 26px; font-weight: bold; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.6); letter-spacing: 3px; }
+
+    /* Summary */
+    .summary-card {
+        background: var(--bg-light-blue);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        display: flex;
+        padding: 28px 34px;
+        align-items: center;
+        gap: 24px;
+    }
+    .level-icon { width: 60px; height: 70px; object-fit: contain; flex-shrink: 0; }
+    .summary-info h2 { font-size: 30px; margin-bottom: 6px; }
+    .summary-info p { font-size: 20px; color: var(--text-gray); }
+
+    /* Mine Grid */
+    .mine-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    .mine-column {
+        background: var(--bg-light-blue);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .mine-row {
+        display: flex;
+        align-items: center;
+        padding: 12px 14px;
+        background: #fff;
+        border-radius: 4px;
+        font-size: 20px;
+    }
+    .mine-name { color: var(--text-dark); font-weight: bold; flex: 1; }
+    .mine-status { color: var(--clear-blue); font-size: 18px; font-weight: bold; margin-right: 10px; }
+    .status-icons { display: flex; gap: 6px; }
+    .buff-dot {
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    .buff-dot img { width: 100%; height: 100%; object-fit: cover; }
+    .buff-dot-empty {
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        background: #ccc;
+    }
+
+    /* Team Cards */
+    .team-list { display: flex; flex-direction: column; gap: 18px; }
+    .team-card {
+        background: var(--bg-light-blue);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 16px 20px;
+    }
+    .team-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
+        margin-bottom: 14px;
+    }
+    .team-name-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 22px;
+        font-weight: bold;
+        color: #385170;
+    }
+    .element-icon-sm { width: 36px; height: 36px; }
+    .energy-cost {
+        display: flex;
+        align-items: center;
+        color: var(--clear-blue);
+        font-size: 24px;
+        font-weight: bold;
+        margin-left: 16px;
+        gap: 8px;
+    }
+    .battery-icon { width: 24px; height: 34px; object-fit: contain; }
+    .rune-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 22px;
+        color: var(--text-dark);
+    }
+    .rune-icon-sm {
+        width: 30px;
+        height: 30px;
+        background: rgba(26, 123, 201, 0.15);
+        border-radius: 6px;
+        padding: 3px;
+    }
+    .rune-dot { color: var(--text-gray); margin: 0 2px; }
+
+    /* Team Avatars */
+    .team-avatars { display: flex; gap: 12px; }
+    .avatar-card {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        border: 2px solid #e0e5eb;
+        overflow: hidden;
+        background: #f0f0f0;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+    .avatar-card img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-grade {
+        position: absolute;
+        top: 6px; left: 6px;
+        font-size: 20px;
+        font-weight: 900;
+        font-family: 'Arial', sans-serif;
+        line-height: 1;
+    }
+    .bp-bar {
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 100%;
+        background: rgba(30,30,30,0.75);
+        color: white;
+        text-align: center;
+        font-size: 20px;
+        font-family: 'Oswald', 'JetBrains Mono', sans-serif;
+        padding: 5px 0;
+    }
+    .grade-sss { background: linear-gradient(180deg, #111 0%, #e6c25a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .grade-sss-plus { background: linear-gradient(180deg, #e53935 0%, #ff9800 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .grade-ss { background: linear-gradient(180deg, #111 0%, #d32f2f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .plus-mark { vertical-align: super; font-size: 0.65em; margin-left: 1px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <img src="{{ headerBgB64 }}" class="header-bg">
+        <div class="avatar-wrap">
+            {% if account.headB64 %}<img src="{{ account.headB64 }}" class="avatar-img">{% endif %}
+            <img src="{{ avatarBoxB64 }}" class="avatar-box">
+        </div>
+        <div class="header-info">
+            <div class="header-row-top">
+                <div class="header-name">{{ account.roleName }}</div>
+                <div class="header-level"><span class="level-label">勋阶</span><span class="level-val">{{ account.rank }}</span></div>
+            </div>
+            <div class="header-row-bottom">
+                <span>{{ account.serverName }}</span>
+                <span class="header-divider">|</span>
+                <span class="header-uid">ID:{{ account.roleId }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Title -->
+    <div class="section-title-bar">
+        <img src="{{ titleBgB64 }}">
+        <span>诺曼复兴战</span>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-card">
+        {% if levelIconB64 %}<img src="{{ levelIconB64 }}" class="level-icon">{% endif %}
+        <div class="summary-info">
+            <h2>{{ challengeArea }}</h2>
+            <p>等级: {{ challengeLevel }}</p>
+        </div>
+    </div>
+
+    <!-- Mine Grid -->
+    <div class="section-title-bar">
+        <img src="{{ titleBgB64 }}">
+        <span>矿区进度</span>
+    </div>
+    <div class="mine-grid">
+        {% for i in range(0, groups|length, (groups|length + 1) // 2) %}
+        <div class="mine-column">
+            {% for g in groups[i:i + (groups|length + 1) // 2] %}
+            <div class="mine-row">
+                <span class="mine-name">{{ g.groupName }}</span>
+                {% if g.pass %}<span class="mine-status">Clear</span>{% endif %}
+                <div class="status-icons">
+                    {% for buff in g.buffs %}
+                    {% if buff.isComplete and buff.iconB64 %}
+                    <div class="buff-dot"><img src="{{ buff.iconB64 }}"></div>
+                    {% else %}
+                    <div class="buff-dot-empty"></div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Teams -->
+    <div class="section-title-bar">
+        <img src="{{ titleBgB64 }}">
+        <span>预设队伍</span>
+    </div>
+    <div class="team-list">
+        {% for team in teams %}
+        <div class="team-card">
+            <div class="team-header">
+                <div class="team-name-group">
+                    {% if team.elementIconB64 %}<img src="{{ team.elementIconB64 }}" class="element-icon-sm">{% endif %}
+                    {{ team.elementName }}梯队
+                    <div class="energy-cost">
+                        {% if batteryIconB64 %}<img src="{{ batteryIconB64 }}" class="battery-icon">{% endif %}
+                        {{ team.electricNum }}
+                    </div>
+                </div>
+                <div class="rune-group">
+                    {% if team.runeIconB64 %}<img src="{{ team.runeIconB64 }}" class="rune-icon-sm">{% endif %}
+                    {{ team.runeName }}{% if team.subRuneName %}<span class="rune-dot">·</span>{{ team.subRuneName }}{% endif %}
+                </div>
+            </div>
+            <div class="team-avatars">
+                {% for char in team.characters %}
+                <div class="avatar-card">
+                    {% if char.iconB64 %}<img src="{{ char.iconB64 }}">{% endif %}
+                    <div class="avatar-grade {{ char.gradeClass }}">{{ char.gradeDisplay }}{% if char.isPlus %}<span class="plus-mark">+</span>{% endif %}</div>
+                    {% if char.fightAbility %}<div class="bp-bar">{{ char.fightAbility }}</div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+</body>
+</html>

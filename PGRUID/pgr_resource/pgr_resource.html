@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>战双资源看板</title>
+<style>
+    @import url('{{ font_css_url }}');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #1a1e23;
+        background-image: url('{{ shadowB64 }}'), url('{{ bgB64 }}');
+        background-size: cover, cover;
+        background-position: center, center;
+        background-blend-mode: multiply;
+        font-family: 'Noto Sans SC', 'Source Han Sans CN', sans-serif;
+        color: #e0e0e0;
+    }
+
+    .container {
+        width: 1000px;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* ===== Header ===== */
+    .header {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        padding: 36px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .header-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+    .avatar-wrap {
+        position: relative;
+        width: 170px;
+        height: 170px;
+        flex-shrink: 0;
+        z-index: 1;
+    }
+    .avatar-img {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px; height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        z-index: 2;
+    }
+    .avatar-box {
+        position: absolute;
+        top: 0; left: 0;
+        width: 170px; height: 170px;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .header-info {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .header-name {
+        font-size: 44px;
+        font-weight: bold;
+        color: #fff;
+        letter-spacing: 1px;
+    }
+    .header-row-top {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .header-level {
+        display: flex;
+        align-items: center;
+        background: rgba(25, 30, 40, 0.8);
+        border: 1px solid rgba(80, 100, 120, 0.6);
+        border-radius: 4px;
+        padding: 6px 14px;
+        font-size: 22px;
+    }
+    .level-label { color: #9baec2; margin-right: 6px; }
+    .level-val { color: #e58d3c; font-weight: bold; }
+    .header-row-bottom {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 24px;
+        color: #8c9eb5;
+    }
+    .header-uid {
+        font-family: 'JetBrains Mono', 'Oswald', monospace;
+        letter-spacing: 0.5px;
+    }
+    .header-divider { color: #4a5a75; margin: 0 4px; }
+
+    /* ===== Title Bar ===== */
+    .section-title-bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        border-radius: 6px;
+    }
+    .section-title-bar img { width: 100%; display: block; }
+    .section-title-bar span {
+        position: absolute;
+        left: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+        font-size: 26px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+        letter-spacing: 3px;
+    }
+
+    /* ===== Top Banner (总计) ===== */
+    .top-section {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .top-banner {
+        width: 100%;
+        display: block;
+    }
+    .top-shadow {
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 100%;
+    }
+    .top-values {
+        position: relative;
+        height: 80px;
+        margin-bottom: 10px;
+    }
+    .top-val {
+        position: absolute;
+        top: 0;
+        transform: translateX(-50%);
+        font-size: 64px;
+        font-weight: bold;
+        color: #f1e08d;
+        font-family: 'Oswald', 'JetBrains Mono', sans-serif;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        letter-spacing: 1px;
+    }
+    .top-val:nth-child(1) { left: 110px; }
+    .top-val:nth-child(2) { left: 435px; }
+    .top-val:nth-child(3) { left: 775px; }
+
+    /* ===== Month Rows ===== */
+    .month-row {
+        position: relative;
+        margin-bottom: 10px;
+    }
+    .month-label {
+        font-size: 28px;
+        font-weight: bold;
+        color: #e0e0e0;
+        margin-bottom: 14px;
+        padding-left: 4px;
+        letter-spacing: 1px;
+    }
+    .cards-grid {
+        display: flex;
+        gap: 12px;
+    }
+    .asset-card {
+        flex: 1;
+        position: relative;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    .asset-card img {
+        width: 100%;
+        display: block;
+    }
+    .card-value {
+        position: absolute;
+        bottom: 5%;
+        left: 0; right: 0;
+        text-align: center;
+        font-size: 56px;
+        font-weight: bold;
+        color: #4da6ff;
+        font-family: 'Oswald', 'JetBrains Mono', sans-serif;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+        letter-spacing: 1px;
+    }
+
+    /* ===== TOP 印章 ===== */
+    .stamp-container {
+        position: absolute;
+        right: 20px;
+        top: -10px;
+        z-index: 10;
+        transform: rotate(-30deg);
+    }
+</style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <img src="{{ headerBgB64 }}" class="header-bg">
+        <div class="avatar-wrap">
+            {% if account.headB64 %}
+            <img src="{{ account.headB64 }}" class="avatar-img">
+            {% endif %}
+            <img src="{{ avatarBoxB64 }}" class="avatar-box">
+        </div>
+        <div class="header-info">
+            <div class="header-row-top">
+                <div class="header-name">{{ account.roleName }}</div>
+                <div class="header-level">
+                    <span class="level-label">勋阶</span>
+                    <span class="level-val">{{ account.rank }}</span>
+                </div>
+            </div>
+            <div class="header-row-bottom">
+                <span class="header-server">{{ account.serverName }}</span>
+                <span class="header-divider">|</span>
+                <span class="header-uid">ID:{{ account.roleId }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Title -->
+    <div class="section-title-bar">
+        <img src="{{ titleBgB64 }}">
+        <span>半年资源总览</span>
+    </div>
+
+    <!-- Top Banner: 总计 -->
+    <div class="top-section">
+        <img src="{{ topBannerB64 }}" class="top-banner">
+    </div>
+    <div class="top-values">
+        <span class="top-val">{{ totalBlackCard }}</span>
+        <span class="top-val">{{ totalDevelopResource }}</span>
+        <span class="top-val">{{ totalTradeCredit }}</span>
+    </div>
+
+    <!-- Title -->
+    <div class="section-title-bar">
+        <img src="{{ titleBgB64 }}">
+        <span>往月收入情况</span>
+    </div>
+
+    <!-- Month Rows -->
+    {% for m in months %}
+    <div class="month-row">
+        {% if m.isHighest %}
+        <div class="stamp-container">
+            <svg width="160" height="160" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-dasharray="4 2"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="3"/>
+                <path id="curve{{ loop.index }}" d="M 20 50 A 30 30 0 0 1 80 50" fill="transparent"/>
+                <text fill="rgba(255,255,255,0.7)" font-size="9" font-weight="900">
+                    <textPath href="#curve{{ loop.index }}" startOffset="50%" text-anchor="middle">- 半年最高 -</textPath>
+                </text>
+                <text x="50" y="62" fill="rgba(255,255,255,0.7)" font-size="18" font-weight="900" text-anchor="middle">TOP</text>
+                <polygon points="50,30 53,36 59,36 54,40 56,46 50,42 44,46 46,40 41,36 47,36" fill="rgba(255,255,255,0.6)"/>
+            </svg>
+        </div>
+        {% endif %}
+
+        <div class="month-label">{{ m.month }}</div>
+        <div class="cards-grid">
+            <div class="asset-card">
+                <img src="{{ card1B64 }}">
+                <div class="card-value">{{ m.blackCard }}</div>
+            </div>
+            <div class="asset-card">
+                <img src="{{ card2B64 }}">
+                <div class="card-value">{{ m.developResource }}</div>
+            </div>
+            <div class="asset-card">
+                <img src="{{ card3B64 }}">
+                <div class="card-value">{{ m.tradeCredit }}</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+</body>
+</html>

@@ -1,0 +1,229 @@
+{
+  "账号绑定": {
+    "desc": "登录/绑定/切换战双账号",
+    "data": [
+      {
+        "name": "登录",
+        "desc": "库洛账号登录（与鸣潮通用）",
+        "eg": "登录",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "绑定",
+        "desc": "绑定战双UID",
+        "eg": "绑定12345678",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "切换",
+        "desc": "切换绑定的UID",
+        "eg": "切换12345678",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "查看",
+        "desc": "查看已绑定的UID列表",
+        "eg": "查看",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "删除",
+        "desc": "删除指定UID",
+        "eg": "删除12345678",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "添加token",
+        "desc": "通过token绑定（库洛账号通用）",
+        "eg": "添加token xxx",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "获取token",
+        "desc": "私聊获取已绑定的token",
+        "eg": "获取token",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "删除全部特征码",
+        "desc": "清空所有已绑定的战双UID",
+        "eg": "删除全部特征码",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      }
+    ]
+  },
+  "角色面板": {
+    "desc": "角色面板查询与刷新",
+    "data": [
+      {
+        "name": "卡片",
+        "desc": "查看账号卡片",
+        "eg": "卡片",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "角色面板",
+        "desc": "查看角色面板（需先刷新）",
+        "eg": "深红囚影面板",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "刷新面板",
+        "desc": "刷新全部角色面板数据",
+        "eg": "刷新面板",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "刷新角色面板",
+        "desc": "刷新单个角色面板数据",
+        "eg": "刷新深红囚影面板",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "添加别名",
+        "desc": "为角色添加自定义别名",
+        "eg": "添加深红囚影别名囚影",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": true
+      },
+      {
+        "name": "查看别名",
+        "desc": "查看角色别名列表",
+        "eg": "深红囚影别名",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      }
+    ]
+  },
+  "信息查询": {
+    "desc": "战斗信息和公告查询",
+    "data": [
+      {
+        "name": "诺曼复兴战",
+        "desc": "查看诺曼矿区进度与预设队伍",
+        "eg": "诺曼",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "历战映射",
+        "desc": "查看历战映射挑战数据",
+        "eg": "历战",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "纷争战区",
+        "desc": "查看纷争战区挑战数据",
+        "eg": "战区",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "幻痛囚笼",
+        "desc": "查看幻痛囚笼挑战数据",
+        "eg": "囚笼",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "涂装",
+        "desc": "查看角色和武器涂装列表",
+        "eg": "涂装",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "资源",
+        "desc": "查看半年资源收入看板",
+        "eg": "资源",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "公告",
+        "desc": "查看战双公告列表",
+        "eg": "公告",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "公告#ID",
+        "desc": "查看公告详情",
+        "eg": "公告#abcd",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      }
+    ]
+  },
+  "群管理员功能": {
+    "pm": 3,
+    "desc": "群管理员功能",
+    "data": [
+      {
+        "name": "订阅公告",
+        "desc": "订阅战双公告推送",
+        "eg": "订阅公告",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": true
+      },
+      {
+        "name": "取消订阅公告",
+        "desc": "取消订阅战双公告推送",
+        "eg": "取消订阅公告",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": true
+      }
+    ]
+  },
+  "bot主人功能": {
+    "pm": 0,
+    "desc": "bot主人功能",
+    "data": [
+      {
+        "name": "清理缓存",
+        "desc": "清理过期公告缓存文件",
+        "eg": "清理缓存",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": true
+      }
+    ]
+  }
+}

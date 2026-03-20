@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>战双卡片</title>
+<style>
+    @import url('{{ font_css_url }}');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #0c0e13;
+        background-image: url('{{ contentBgB64 }}');
+        background-size: cover;
+        background-position: center;
+        font-family: 'Noto Sans SC', 'Source Han Sans CN', sans-serif;
+        color: white;
+    }
+
+    .container {
+        width: 1000px;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    /* === Header: Account Info === */
+    .header {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        padding: 36px 36px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .header-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+
+    .avatar-wrap {
+        position: relative;
+        width: 170px;
+        height: 170px;
+        flex-shrink: 0;
+        z-index: 1;
+    }
+
+    .avatar-img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        z-index: 2;
+    }
+
+    .avatar-box {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 170px;
+        height: 170px;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .header-info {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* 头部第一行：名字 + 勋阶 */
+    .header-row-top {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .header-name {
+        font-size: 44px;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+
+    .header-level {
+        display: flex;
+        align-items: center;
+        background: rgba(25, 30, 40, 0.8);
+        border: 1px solid rgba(80, 100, 120, 0.6);
+        border-radius: 4px;
+        padding: 6px 14px;
+        font-size: 22px;
+    }
+
+    .level-label {
+        color: #9baec2;
+        margin-right: 6px;
+    }
+
+    .level-val {
+        color: #e58d3c;
+        font-weight: bold;
+    }
+
+    /* 头部第二行：服务器 + UID */
+    .header-row-bottom {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 24px;
+        color: #8c9eb5;
+    }
+
+    .header-uid {
+        font-family: 'JetBrains Mono', 'Oswald', monospace;
+        letter-spacing: 0.5px;
+    }
+
+    .header-divider {
+        color: #4a5a75;
+        margin: 0 4px;
+    }
+
+    /* === Stats Grid === */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+
+    .stat-card {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        padding: 12px 18px;
+    }
+
+    .stat-card-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+
+    .stat-card-overlay {
+        display: none;
+    }
+
+    .stat-card-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .stat-value {
+        font-size: 36px;
+        font-family: 'Oswald', 'JetBrains Mono', sans-serif;
+        font-weight: 800;
+        color: #0066b3;
+        line-height: 1.1;
+        margin-bottom: 4px;
+        letter-spacing: -1px;
+    }
+
+    .stat-label {
+        font-size: 18px;
+        color: #555555;
+        letter-spacing: 1px;
+    }
+
+    .section-title-bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        border-radius: 6px;
+    }
+
+    .section-title-bar img {
+        width: 100%;
+        display: block;
+    }
+
+    .section-title-bar span {
+        position: absolute;
+        left: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+        font-size: 26px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+        letter-spacing: 3px;
+    }
+
+    /* === Characters Grid === */
+    .char-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+    }
+
+    .char-card {
+        position: relative;
+        border-radius: 4px; /* 边缘微调 */
+        overflow: hidden;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border-bottom: 4px solid #e75c24; /* 底部橙色粗边框 */
+    }
+
+    .char-icon-wrap {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .char-role-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+
+    .char-icon {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* 角色评级渐变字 */
+    .char-grade-badge {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        z-index: 2;
+        font-size: 26px;
+        font-weight: 900;
+        font-family: 'Arial', sans-serif;
+        line-height: 1;
+        letter-spacing: 0.5px;
+        background: none;
+        padding: 0;
+    }
+
+    /* SSS / SSSx: 上黑下金 */
+    .grade-sss {
+        background: linear-gradient(180deg, #111111 0%, #e6c25a 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    /* SSS+: 上红下橙 */
+    .grade-sss-plus {
+        background: linear-gradient(180deg, #e53935 0%, #ff9800 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    /* SS / SSx / S: 上黑下红 */
+    .grade-ss {
+        background: linear-gradient(180deg, #111111 0%, #d32f2f 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* 右上角加号样式 */
+    .plus-mark {
+        vertical-align: super;
+        font-size: 0.65em;
+        margin-left: 1px;
+    }
+
+    /* 隐藏原有的A/S/SS小黑框 */
+    .char-rank-badge {
+        display: none; 
+    }
+
+    /* 底部角色名与属性栏 */
+    .char-info {
+        width: 100%;
+        background: #1b2028;
+        padding: 8px 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .char-info-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .char-name {
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .char-elements {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .char-element-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .char-fight {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        z-index: 2;
+        font-size: 13px;
+        font-family: 'JetBrains Mono', monospace;
+        color: #fff;
+        background: rgba(0,0,0,0.55);
+        padding: 1px 6px;
+        border-radius: 4px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+
+</style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <img src="{{ headBgB64 }}" class="header-bg">
+        <div class="avatar-wrap">
+            {% if account.headB64 %}
+            <img src="{{ account.headB64 }}" class="avatar-img">
+            {% endif %}
+            <img src="{{ avatarBoxB64 }}" class="avatar-box">
+        </div>
+        <div class="header-info">
+            <div class="header-row-top">
+                <div class="header-name">{{ account.roleName }}</div>
+                <div class="header-level">
+                    <span class="level-label">勋阶</span>
+                    <span class="level-val">{{ account.rank }}</span>
+                </div>
+            </div>
+            <div class="header-row-bottom">
+                <span class="header-server">{{ account.serverName }}</span>
+                <span class="header-divider">|</span>
+                <span class="header-uid">ID:{{ account.roleId }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title-bar">
+        <img src="{{ titleBgB64 }}">
+        <span>我的资料</span>
+    </div>
+    <div class="stats-grid">
+        {% for stat in stats %}
+        <div class="stat-card">
+            <img src="{{ stat.bgB64 }}" class="stat-card-bg">
+            <div class="stat-card-overlay"></div>
+            <div class="stat-card-content">
+                <div class="stat-value">{{ stat.value }}</div>
+                <div class="stat-label">{{ stat.label }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="section-title-bar">
+        <img src="{{ titleBgB64 }}">
+        <span>角色信息 ({{ char_count }})</span>
+    </div>
+    <div class="char-grid">
+        {% for char in characters %}
+        <div class="char-card">
+            <div class="char-icon-wrap">
+                <img src="{{ roleBgB64 }}" class="char-role-bg">
+                {% if char.iconB64 %}
+                <img src="{{ char.iconB64 }}" class="char-icon">
+                {% endif %}
+                <div class="char-grade-badge {{ char.gradeClass }}">{{ char.gradeDisplay }}{% if char.isPlus %}<span class="plus-mark">+</span>{% endif %}</div>
+                <div class="char-fight">{{ char.fightAbility }}</div>
+            </div>
+            <div class="char-info">
+                <div class="char-info-row">
+                    <div class="char-elements">
+                        {% for elem in char.elements %}
+                            {% if elem.iconB64 %}
+                            <img src="{{ elem.iconB64 }}" class="char-element-icon" title="{{ elem.name }}">
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div class="char-name">{{ char.bodyName }}</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+
+</div>
+</body>
+</html>

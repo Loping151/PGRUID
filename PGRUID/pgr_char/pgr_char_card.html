@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>战双角色面板</title>
+<style>
+    @import url('{{ font_css_url }}');
+
+    :root {
+        --bg-light: #f1f4f8;
+        --header-dark: #1f314d;
+        --text-main: #2b2b2b;
+        --text-gray: #8c939d;
+        --primary-blue: #1b73c9;
+        --accent-red: #d13d33;
+        --rank-gold: #c3924f;
+        --border-color: #dce3eb;
+        --card-bg: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans SC', -apple-system, sans-serif; }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #0c0e13;
+        background-image: url('{{ contentBgB64 }}');
+        background-size: cover;
+        background-position: center;
+    }
+
+    .container {
+        width: 1000px;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* ===== Section Title Bar ===== */
+    /* ===== Header (和卡片一致) ===== */
+    .header {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 24px 24px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .header-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+    }
+    .avatar-wrap {
+        position: relative;
+        width: 170px;
+        height: 170px;
+        flex-shrink: 0;
+        z-index: 1;
+    }
+    .avatar-img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        z-index: 2;
+    }
+    .avatar-box {
+        position: absolute;
+        top: 0; left: 0;
+        width: 170px;
+        height: 170px;
+        pointer-events: none;
+        z-index: 1;
+    }
+    .header-info {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .header-name {
+        font-size: 28px;
+        font-weight: bold;
+        color: #fff;
+        letter-spacing: 1px;
+    }
+    .header-level {
+        display: flex;
+        align-items: center;
+        background: rgba(25, 30, 40, 0.8);
+        border: 1px solid rgba(80, 100, 120, 0.6);
+        border-radius: 4px;
+        padding: 3px 10px;
+        font-size: 16px;
+    }
+    .level-label { color: #9baec2; margin-right: 4px; }
+    .level-val { color: #e58d3c; font-weight: bold; }
+    .header-row-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .header-row-bottom {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 18px;
+        color: #8c9eb5;
+    }
+    .header-uid {
+        font-family: 'JetBrains Mono', 'Oswald', monospace;
+        letter-spacing: 0.5px;
+    }
+    .header-divider { color: #4a5a75; margin: 0 4px; }
+
+    .section-title-bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        border-radius: 6px;
+    }
+    .section-title-bar img { width: 100%; display: block; }
+    .section-title-bar span {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+        font-size: 20px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        letter-spacing: 2px;
+    }
+
+    /* ===== 1. 角色头部 ===== */
+    .char-header-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 240px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+    }
+    .char-info {
+        position: relative;
+        z-index: 2;
+        padding: 20px;
+    }
+    .char-name-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 6px;
+        border-left: 4px solid var(--accent-red);
+        padding-left: 10px;
+    }
+    .char-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--text-main);
+        margin-right: 8px;
+    }
+    .char-body-name {
+        font-size: 16px;
+        color: var(--text-gray);
+    }
+
+    /* 品级渐变字 */
+    .char-rank {
+        font-size: 26px;
+        font-weight: 900;
+        font-family: 'Arial', sans-serif;
+        margin-bottom: 10px;
+        padding-left: 14px;
+        line-height: 1;
+    }
+    .grade-sss {
+        background: linear-gradient(180deg, #111 0%, #e6c25a 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .grade-sss-plus {
+        background: linear-gradient(180deg, #e53935 0%, #ff9800 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .grade-ss {
+        background: linear-gradient(180deg, #111 0%, #d32f2f 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .plus-mark {
+        vertical-align: super;
+        font-size: 0.65em;
+        margin-left: 1px;
+    }
+
+    .char-tags {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 16px;
+        padding-left: 14px;
+    }
+    .char-tag-icon {
+        width: 38px;
+        height: 38px;
+        background: rgba(0,0,0,0.35);
+        border-radius: 8px;
+        padding: 4px;
+    }
+
+    .combat-power-label {
+        font-size: 14px;
+        color: var(--text-gray);
+        padding-left: 14px;
+        margin-bottom: 4px;
+    }
+    .combat-power-val {
+        font-size: 36px;
+        font-weight: bold;
+        color: var(--primary-blue);
+        font-family: 'Oswald', 'JetBrains Mono', sans-serif;
+        padding-left: 14px;
+    }
+
+    /* 右侧立绘 */
+    .char-portrait {
+        position: absolute;
+        right: -20px;
+        top: 0;
+        height: 100%;
+        width: auto;
+        z-index: 1;
+        opacity: 0.85;
+    }
+
+    /* ===== 通用缺角样式 ===== */
+    .clipped {
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+    }
+
+    /* ===== 通用面板 ===== */
+    .section-panel {
+        background-color: var(--bg-light);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+    }
+    .section-header {
+        background-color: var(--header-dark);
+        height: 36px;
+        display: flex;
+        align-items: center;
+        padding-left: 12px;
+    }
+    .section-title {
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+    }
+    .section-title::before {
+        content: "";
+        display: inline-block;
+        width: 4px;
+        height: 16px;
+        background-color: #3b8eed;
+        margin-right: 8px;
+    }
+    .section-title-sub {
+        font-size: 12px;
+        color: #8ba2c2;
+        margin-left: 8px;
+        font-weight: normal;
+    }
+    .section-content { padding: 12px; }
+
+    /* ===== 2. 武器 / 辅助机 ===== */
+    .item-row { display: flex; gap: 14px; }
+
+    /* 武器/辅助机图片外框 */
+    .weapon-img-box {
+        width: 110px;
+        height: 110px;
+        background: white;
+        border: 2px solid #e0e5eb;
+        padding: 4px;
+        position: relative;
+        flex-shrink: 0;
+        box-sizing: border-box;
+    }
+    .weapon-img-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: #f4f6f9;
+        overflow: hidden;
+    }
+    .weapon-img-inner img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform: scale(1.05);
+    }
+    .weapon-supply {
+        position: absolute;
+        bottom: 18px;
+        left: 2px;
+        color: #e22b37;
+        font-size: 14px;
+        font-family: 'Arial Black', sans-serif;
+        font-weight: 900;
+        letter-spacing: 2px;
+        z-index: 2;
+    }
+    .weapon-red-bar {
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 100%;
+        height: 16px;
+        background: #e22b37;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-sizing: border-box;
+        padding: 0 4px;
+        z-index: 2;
+    }
+    .red-bar-decor {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        height: 100%;
+    }
+    .red-bar-decor-thick { width: 4px; height: 10px; background: white; }
+    .red-bar-decor-thin { width: 1px; height: 10px; background: white; }
+    .red-bar-stars {
+        color: white;
+        font-size: 10px;
+        letter-spacing: 1px;
+        line-height: 1;
+    }
+    .weapon-upgrade-arrow {
+        position: absolute;
+        top: 0; right: 0;
+        width: 24px; height: 24px;
+        background: #265ba4;
+        clip-path: polygon(100% 0, 0 0, 100% 100%);
+        z-index: 2;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+    }
+    .weapon-upgrade-arrow svg {
+        width: 10px; height: 10px;
+        margin: 2px 2px 0 0;
+    }
+
+    /* 辅助机橙色变体 */
+    .partner-supply { color: #e58d3c; }
+    .partner-bar { background: #e58d3c; }
+
+    /* SUPPLY 和星级/品级放大 */
+    .weapon-supply { font-size: 16px; }
+    .red-bar-stars { font-size: 13px; letter-spacing: 2px; }
+    .item-details { flex: 1; display: flex; flex-direction: column; }
+    .item-name-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        border-bottom: 1px solid #dce3eb;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+    }
+    .item-name { font-size: 16px; font-weight: bold; color: var(--text-main); }
+    .item-type { font-size: 10px; color: #b0b8c2; font-weight: bold; letter-spacing: 1px; }
+
+    /* 武器共鸣 / 谐振 */
+    .sub-features { display: flex; gap: 14px; margin-top: 6px; }
+    .sub-feature-item { display: flex; flex-direction: column; gap: 4px; }
+    .sub-feature-label { font-size: 12px; color: var(--text-main); }
+    .sub-feature-icon { width: 36px; height: 36px; background: white; border: 1px solid #ddd; }
+    .sub-feature-icon img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* 辅助机技能 */
+    .cub-skills {
+        background: #e8ecef;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+    }
+    .cub-skill-icon { width: 28px; height: 28px; border-radius: 50%; }
+    .cub-skill-icon img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+    .cub-skill-text { display: flex; flex-direction: column; }
+    .cub-skill-name { font-size: 13px; font-weight: bold; color: var(--text-main); }
+    .cub-skill-level { font-size: 11px; color: var(--primary-blue); font-weight: bold; }
+
+    .cub-sub-skills { display: flex; gap: 12px; }
+    .cub-sub-skill-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .cub-sub-icon { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; }
+    .cub-sub-icon img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* ===== 3. 意识 ===== */
+    .memory-set-info {
+        font-size: 14px;
+        color: var(--text-main);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    .memory-set-info strong { margin: 0 4px; }
+    .memory-buff {
+        font-size: 13px;
+        color: var(--text-gray);
+        margin-bottom: 12px;
+    }
+    .memory-grid {
+        display: flex;
+        gap: 4px;
+    }
+    .memory-card {
+        flex: 1;
+        background: white;
+        border: 1px solid #d0d7e0;
+        border-radius: 2px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .memory-portrait-area {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1;
+        overflow: hidden;
+    }
+    .memory-portrait-area img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .memory-num {
+        position: absolute;
+        top: 2px; left: 2px;
+        background: rgba(0,0,0,0.6); color: white;
+        font-size: 8px; padding: 1px 2px;
+        border-radius: 1px;
+        z-index: 2;
+    }
+    .memory-awake {
+        position: absolute;
+        top: 2px; right: 2px;
+        z-index: 2;
+        width: 0; height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 8px solid #ff2020;
+        filter: drop-shadow(0 0 2px rgba(255,0,0,0.5));
+    }
+    .memory-details {
+        display: flex;
+        flex-direction: column;
+        padding: 2px;
+        gap: 2px;
+        background: #f8fafc;
+    }
+    .memory-name {
+        font-size: 8px;
+        color: var(--text-main);
+        text-align: center;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        font-weight: bold;
+    }
+    .memory-resonances {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+    }
+    .res-slot {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        border: 1px solid #eee;
+    }
+    .res-slot img { width: 80%; height: 80%; object-fit: contain; }
+    .res-placeholder { font-size: 9px; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header (和卡片一致) -->
+    <div class="header">
+        <img src="{{ headerBgB64 }}" class="header-bg">
+        <div class="avatar-wrap">
+            {% if account.headB64 %}
+            <img src="{{ account.headB64 }}" class="avatar-img">
+            {% endif %}
+            <img src="{{ avatarBoxB64 }}" class="avatar-box">
+        </div>
+        <div class="header-info">
+            <div class="header-row-top">
+                <div class="header-name">{{ account.roleName }}</div>
+                <div class="header-level">
+                    <span class="level-label">勋阶</span>
+                    <span class="level-val">{{ account.rank }}</span>
+                </div>
+            </div>
+            <div class="header-row-bottom">
+                <span class="header-server">{{ account.serverName }}</span>
+                <span class="header-divider">|</span>
+                <span class="header-uid">ID:{{ account.roleId }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 角色详情 Title -->
+    <div class="section-title-bar">
+        <img src="{{ titleBgB64 }}">
+        <span>角色详情</span>
+    </div>
+
+    <!-- 1. 角色头部 -->
+    <div class="char-header-card">
+
+        {% if body.imgB64 %}
+        <img src="{{ body.imgB64 }}" class="char-portrait">
+        {% endif %}
+
+        <div class="char-info">
+            <div class="char-name-row">
+                <span class="char-name">{{ body.roleName }}·{{ body.bodyName }}</span>
+            </div>
+
+            <div class="char-rank {{ gradeInfo.gradeClass }}">{{ gradeInfo.gradeDisplay }}{% if gradeInfo.isPlus %}<span class="plus-mark">+</span>{% endif %}</div>
+
+            <div class="char-tags">
+                {% for e, icon_b64 in elemIcons.items() %}
+                <img src="{{ icon_b64 }}" class="char-tag-icon" title="{{ e }}">
+                {% endfor %}
+            </div>
+
+            <div class="combat-power-label">战斗参数</div>
+            <div class="combat-power-val">{{ fightAbility }}</div>
+        </div>
+    </div>
+
+    <!-- 2. 武器 -->
+    {% if weapon.name %}
+    <div class="section-panel">
+        <div class="section-header">
+            <div class="section-title">武器</div>
+        </div>
+        <div class="section-content item-row">
+            <div class="weapon-img-box">
+                <div class="weapon-img-inner">
+                    {% if weapon.iconB64 %}
+                    <img src="{{ weapon.iconB64 }}">
+                    {% endif %}
+                    <div class="weapon-upgrade-arrow"><svg viewBox="0 0 10 10" fill="white"><polygon points="5,1 9,8 1,8"/></svg></div>
+                    <div class="weapon-supply">SUPPLY</div>
+                    <div class="weapon-red-bar">
+                        <div class="red-bar-decor">
+                            <div class="red-bar-decor-thick"></div>
+                            <div class="red-bar-decor-thin"></div>
+                        </div>
+                        <div class="red-bar-stars">{{ stars }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="item-details">
+                <div class="item-name-row">
+                    <span class="item-name">{{ weapon.name }}</span>
+                    <span class="item-type">WEAPON</span>
+                </div>
+                <div class="sub-features">
+                    {% for res in weapon.resonances %}
+                    <div class="sub-feature-item">
+                        <span class="sub-feature-label">{{ res.name }}</span>
+                        <div class="sub-feature-icon">
+                            {% if res.iconB64 %}<img src="{{ res.iconB64 }}">{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if weapon.suitName %}
+                    <div class="sub-feature-item">
+                        <span class="sub-feature-label">谐振{{ weapon.overRunLevel }}级</span>
+                        <div class="sub-feature-icon">
+                            {% if weapon.suitIconB64 %}<img src="{{ weapon.suitIconB64 }}">{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 3. 辅助机 -->
+    {% if partner.name %}
+    <div class="section-panel">
+        <div class="section-header">
+            <div class="section-title">辅助机</div>
+        </div>
+        <div class="section-content item-row">
+            <div class="weapon-img-box">
+                <div class="weapon-img-inner">
+                    {% if partner.iconB64 %}
+                    <img src="{{ partner.iconB64 }}">
+                    {% endif %}
+                    <div class="weapon-supply partner-supply">SUPPLY</div>
+                    <div class="weapon-red-bar partner-bar">
+                        <div class="red-bar-decor">
+                            <div class="red-bar-decor-thick"></div>
+                            <div class="red-bar-decor-thin"></div>
+                        </div>
+                        <div class="red-bar-stars">{{ partner.grade }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="item-details">
+                <div class="item-name-row">
+                    <span class="item-name">{{ partner.name }}</span>
+                    <span style="color:var(--accent-red); font-weight:bold;">{{ partner.grade }}</span>
+                </div>
+
+                {% if partner.skills %}
+                <!-- 主技能 -->
+                <div class="cub-skills">
+                    {% if partner.skills[0].iconB64 %}
+                    <div class="cub-skill-icon"><img src="{{ partner.skills[0].iconB64 }}"></div>
+                    {% endif %}
+                    <div class="cub-skill-text">
+                        <span class="cub-skill-name">{{ partner.skills[0].name }}</span>
+                        <span class="cub-skill-level">{% if partner.skills[0].level >= 5 %}MAX{% else %}Lv.{{ partner.skills[0].level }}{% endif %}</span>
+                    </div>
+                </div>
+
+                <!-- 副技能 -->
+                {% if partner.skills|length > 1 %}
+                <div class="cub-sub-skills">
+                    {% for skill in partner.skills[1:] %}
+                    <div class="cub-sub-skill-item">
+                        <div class="cub-sub-icon">
+                            {% if skill.iconB64 %}<img src="{{ skill.iconB64 }}">{% endif %}
+                        </div>
+                        <span class="cub-skill-level">{% if skill.level >= 5 %}MAX{% else %}Lv.{{ skill.level }}{% endif %}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4. 意识 -->
+    {% if chipResonances %}
+    <div class="section-panel">
+        <div class="section-header">
+            <div class="section-title">意识</div>
+        </div>
+        <div class="section-content">
+            {% if chipSuits %}
+            <div class="memory-set-info">
+                套装技能 <strong>▶</strong>
+                {% for cs in chipSuits %}
+                {{ cs.name }} | {{ cs.num }}{% if not loop.last %}&nbsp;&nbsp;{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if chipExDamage %}
+            <div class="memory-buff">额外伤害加成：{{ chipExDamage }}</div>
+            {% endif %}
+
+            <div class="memory-grid">
+                {% for cr in chipResonances %}
+                <div class="memory-card">
+                    <div class="memory-portrait-area">
+                        <span class="memory-num">{{ "%02d"|format(cr.site) }}</span>
+                        {% if cr.defend %}
+                        <span class="memory-awake"></span>
+                        {% endif %}
+                        {% if cr.chipIconB64 %}
+                        <img src="{{ cr.chipIconB64 }}">
+                        {% endif %}
+                    </div>
+                    <div class="memory-details">
+                        <div class="memory-name">{{ cr.chipName }}</div>
+                        <div class="memory-resonances">
+                            <div class="res-slot">
+                                {% if cr.superIconB64 %}
+                                <img src="{{ cr.superIconB64 }}">
+                                {% elif cr.superAwake %}
+                                <span class="res-placeholder" style="color:var(--accent-red);">✓</span>
+                                {% endif %}
+                            </div>
+                            <div class="res-slot">
+                                {% if cr.subIconB64 %}
+                                <img src="{{ cr.subIconB64 }}">
+                                {% elif cr.subAwake %}
+                                <span class="res-placeholder" style="color:var(--accent-red);">✓</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+</body>
+</html>
