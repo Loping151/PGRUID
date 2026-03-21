@@ -130,7 +130,7 @@ async def pgr_refresh_all(bot: Bot, ev: Event):
     from ..utils.api.requests import pgr_api
     import asyncio
 
-    ck = await pgr_api.get_self_pgr_ck(uid, ev.user_id, ev.bot_id)
+    _is_self, ck = await pgr_api.get_ck_result(uid, ev.user_id, ev.bot_id)
     if not ck:
         return await _send(bot, ev, f"[战双] token 已失效，请使用【{PREFIX}登录】重新绑定！")
 

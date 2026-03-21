@@ -5,7 +5,7 @@
 import json
 import asyncio
 from pathlib import Path
-from typing import Dict, Union
+from typing import Union
 
 from gsuid_core.logger import logger
 
@@ -28,6 +28,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     render_html,
     image_to_base64,
 )
+from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
 
 
 # ===== URL 资源下载 =====
@@ -165,7 +166,7 @@ async def draw_char_card(
 
     if not raw_data:
         # 实时请求
-        ck = await pgr_api.get_self_pgr_ck(uid, user_id, bot_id)
+        _is_self, ck = await pgr_api.get_ck_result(uid, user_id, bot_id)
         if not ck:
             return f"[战双] token 已失效，请使用【{PREFIX}登录】重新绑定！"
 

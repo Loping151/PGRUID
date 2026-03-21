@@ -183,6 +183,24 @@ class PGRPrisonerCageInfo(PGRBaseModel):
     bossFightInfoList: Optional[List[PGRBossFightInfo]] = Field(default_factory=list)
 
 
+class PGRFightHardBuff(PGRBaseModel):
+    """鏖战点 Buff 条目"""
+    autoFight: Optional[bool] = False
+    isActive: Optional[bool] = False
+    point: Optional[int] = 0
+    fightTime: Optional[int] = None
+    buff: Optional[Dict[str, Any]] = None
+    bodyList: Optional[List[PGRStageBody]] = Field(default_factory=list)
+
+
+class PGRFightHardZone(PGRBaseModel):
+    """鏖战点数据"""
+    totalPoint: Optional[int] = 0
+    totalChallengeTimes: Optional[int] = 0
+    boss: Optional[PGRBossInfo] = None
+    buffList: Optional[List[PGRFightHardBuff]] = Field(default_factory=list)
+
+
 class PGRPrisonerCageData(PGRBaseModel):
     """幻痛囚笼数据"""
     show: Optional[bool] = False
@@ -192,6 +210,7 @@ class PGRPrisonerCageData(PGRBaseModel):
     challengeArea: Optional[str] = ""
     challengeLevel: Optional[str] = ""
     prisonerCage: Optional[PGRPrisonerCageInfo] = None
+    fightHardZone: Optional[PGRFightHardZone] = None
 
 
 # ===== area (纷争战区) =====

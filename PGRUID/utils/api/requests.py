@@ -2,7 +2,8 @@
 
 直接复用 xwuid 的请求底层（代理池、重试、session 管理等），只定义 PGR 的 API 端点
 """
-from typing import Any, Dict, List, Union, Optional
+import random
+from typing import Dict, List, Tuple, Union, Optional
 
 from gsuid_core.logger import logger
 
@@ -51,6 +52,9 @@ from XutheringWavesUID.XutheringWavesUID.utils.api.request_util import (
 )
 
 
+PGR_SERVER_IDS = ["1000", "1001", "1002", "1003"]
+
+
 class PGRApi:
     ann_map: Dict[str, dict] = {}
     ann_list_data: List[dict] = []
@@ -59,6 +63,42 @@ class PGRApi:
     async def _request(self, url: str, headers: dict, data: dict) -> KuroApiResp:
         """复用 xwuid 的请求底层"""
         return await waves_api._waves_request(url, "POST", headers, data=data)
+
+    async def _resolve_server_id(self, role_id: str, server_id: Optional[str] = None) -> str:
+        """从数据库获取 serverId，未缓存则返回默认值 1000"""
+        if server_id:
+            return server_id
+        from ..database.models import PGRServerMap
+        cached = await PGRServerMap.get_server_id(role_id)
+        return cached or "1000"
+
+    # ===== 服务器探测 =====
+
+    async def get_server_id(self, role_id: str, token: str) -> str:
+        """获取 UID 对应的 serverId，优先从数据库读取，否则自动探测"""
+        from ..database.models import PGRServerMap
+
+        cached = await PGRServerMap.get_server_id(role_id)
+        if cached:
+            return cached
+
+        # 自动探测
+        sid = await self._detect_server_id(role_id, token)
+        await PGRServerMap.set_server_id(role_id, sid)
+        return sid
+
+    async def _detect_server_id(self, role_id: str, token: str) -> str:
+        """通过 refreshData 逐个尝试 serverId"""
+        for sid in PGR_SERVER_IDS:
+            headers = await get_base_header()
+            headers["token"] = token
+            data = {"serverId": sid, "roleId": role_id}
+            res = await self._request(REFRESH_DATA_URL, headers, data)
+            if res.success and res.data:
+                logger.info(f"[PGRUID] 探测到 UID {role_id} 的 serverId={sid}")
+                return sid
+        logger.warning(f"[PGRUID] 未探测到 UID {role_id} 的服务器，使用默认 1000")
+        return "1000"
 
     # ===== Token 验证 =====
 
@@ -93,12 +133,50 @@ class PGRApi:
         await WavesUser.update_last_used_time(uid, user_id, bot_id, game_id=PGR_GAME_ID)
         return waves_user.cookie
 
+    async def get_pgr_random_cookie(self, uid: str) -> Optional[str]:
+        """随机获取一个有效的公共 PGR cookie"""
+        from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesUser
+
+        user_list = await WavesUser.get_waves_all_user()
+        random.shuffle(user_list)
+        for user in user_list:
+            if user.game_id != PGR_GAME_ID:
+                continue
+            if not await WavesUser.cookie_validate(user.uid):
+                continue
+
+            data = await waves_api.login_log(user.uid, user.cookie)
+            if not data.success:
+                await data.mark_cookie_invalid(user.uid, user.cookie)
+                continue
+
+            return user.cookie
+        return None
+
+    async def get_ck_result(
+        self, uid: str, user_id: str, bot_id: str
+    ) -> Tuple[bool, Optional[str]]:
+        """获取有效 cookie，先自己的，没有则用公共的
+
+        Returns:
+            (is_self_ck, cookie)
+        """
+        ck = await self.get_self_pgr_ck(uid, user_id, bot_id)
+        if ck:
+            await self.get_server_id(uid, ck)
+            return True, ck
+        ck = await self.get_pgr_random_cookie(uid)
+        if ck:
+            await self.get_server_id(uid, ck)
+        return False, ck
+
     # ===== 刷新数据 =====
 
     async def refresh_data(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> KuroApiResp:
         """刷新战双数据（/haru/roleBox/refreshData）"""
+        server_id = await self._resolve_server_id(role_id, server_id)
         headers = await get_base_header()
         headers["token"] = token
         data = {"serverId": server_id, "roleId": role_id}
@@ -167,11 +245,12 @@ class PGRApi:
     # ===== 游戏数据接口 =====
 
     async def get_account_data(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRAccountData]:
         """获取战双账号数据（等级/昵称/服务器/头像/段位）"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(ACCOUNT_DATA_URL, headers, data)
         if res.success and res.data:
@@ -179,11 +258,12 @@ class PGRApi:
         return None
 
     async def get_base_data(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRBaseData]:
         """获取战双基础数据"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(BASE_DATA_URL, headers, data)
         if res.success and res.data:
@@ -191,9 +271,10 @@ class PGRApi:
         return None
 
     async def get_daily_data(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRDailyData]:
         """获取战双日常数据（血清/委托/活跃/Boss）"""
+        server_id = await self._resolve_server_id(role_id, server_id)
         headers = await get_base_header()
         headers["token"] = token
         data = {"type": "2", "serverId": server_id, "roleId": role_id}
@@ -204,11 +285,12 @@ class PGRApi:
 
 
     async def get_role_index(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRRoleIndexData]:
         """获取战双角色列表"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(ROLE_INDEX_URL, headers, data)
         if res.success and res.data:
@@ -216,11 +298,12 @@ class PGRApi:
         return None
 
     async def get_character_fashion(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRFashionData]:
         """获取战双涂装/皮肤数据"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(CHARACTER_FASHION_URL, headers, data)
         if res.success and res.data:
@@ -240,11 +323,12 @@ class PGRApi:
         return None
 
     async def get_weapon_fashion(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRWeaponFashionData]:
         """获取战双武器涂装数据"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(WEAPON_FASHION_URL, headers, data)
         if res.success and res.data:
@@ -252,11 +336,12 @@ class PGRApi:
         return None
 
     async def get_prisoner_cage(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRPrisonerCageData]:
         """获取战双幻痛囚笼数据"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(PRISONER_CAGE_URL, headers, data)
         if res.success and res.data:
@@ -264,11 +349,12 @@ class PGRApi:
         return None
 
     async def get_area(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRAreaData]:
         """获取战双纷争战区数据"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(AREA_URL, headers, data)
         if res.success and res.data:
@@ -276,11 +362,12 @@ class PGRApi:
         return None
 
     async def get_chip_overclocking(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRChipOverclockingData]:
         """获取战双芯片超频数据"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(CHIP_OVERCLOCKING_URL, headers, data)
         if res.success and res.data:
@@ -288,11 +375,12 @@ class PGRApi:
         return None
 
     async def get_transfinite(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRTransfiniteData]:
         """获取战双历战映射数据"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(TRANSFINITE_URL, headers, data)
         if res.success and res.data:
@@ -300,11 +388,12 @@ class PGRApi:
         return None
 
     async def get_stronghold(
-        self, role_id: str, token: str, server_id: str = "1000"
+        self, role_id: str, token: str, server_id: Optional[str] = None
     ) -> Optional[PGRStrongholdData]:
         """获取战双诺曼矿区数据"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id}
         res = await self._request(STRONGHOLD_URL, headers, data)
         if res.success and res.data:
@@ -313,11 +402,12 @@ class PGRApi:
 
 
     async def get_role_detail(
-        self, role_id: str, token: str, character_id: int, server_id: str = "1000"
+        self, role_id: str, token: str, character_id: int, server_id: Optional[str] = None
     ) -> Optional[PGRRoleDetailData]:
         """获取战双角色详情（装备/武器/辅助机/芯片）"""
         headers = await get_base_header()
         headers["token"] = token
+        server_id = await self._resolve_server_id(role_id, server_id)
         data = {"serverId": server_id, "roleId": role_id, "characterId": str(character_id)}
         res = await self._request(ROLE_DETAIL_URL, headers, data)
         if res.success and res.data:

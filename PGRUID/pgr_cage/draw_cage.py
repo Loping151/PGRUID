@@ -4,9 +4,7 @@
 """
 import asyncio
 from pathlib import Path
-from typing import Dict, List, Union
-
-from gsuid_core.logger import logger
+from typing import Union
 from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
@@ -19,6 +17,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     render_html,
     image_to_base64,
 )
+from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
 from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
 
 IMGS_PATH = Path(__file__).parent / "imgs"
@@ -54,7 +53,7 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
     user_id = ruser_id(ev)
     bot_id = ev.bot_id
 
-    ck = await pgr_api.get_self_pgr_ck(uid, user_id, bot_id)
+    _is_self, ck = await pgr_api.get_ck_result(uid, user_id, bot_id)
     if not ck:
         return f"[战双] token 已失效，请使用【{PREFIX}登录】重新绑定！"
 
@@ -65,7 +64,9 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
 
     if not cage_data:
         return "[战双] 获取幻痛囚笼数据失败"
-    if not cage_data.prisonerCage or not cage_data.challengeArea:
+    has_cage = cage_data.prisonerCage and cage_data.challengeArea
+    has_fight_hard = cage_data.fightHardZone and cage_data.fightHardZone.totalPoint
+    if not has_cage and not has_fight_hard:
         return "[战双] 幻痛囚笼暂无数据"
 
     cage = cage_data.prisonerCage
@@ -87,6 +88,21 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
                 body = (body_info.get("body") or {})
                 if body.get("iconUrl"):
                     download_tasks.append(_download(ROLE_ICON_PATH, body["iconUrl"]))
+
+    # fightHardZone 资源下载
+    fhz = raw.get("fightHardZone") or {}
+    fhz_boss = fhz.get("boss") or {}
+    if fhz_boss.get("iconUrl"):
+        download_tasks.append(_download(BOSS_ICON_PATH, fhz_boss["iconUrl"]))
+    for weakness in (fhz_boss.get("weaknessList") or []):
+        if weakness.get("icon"):
+            download_tasks.append(_download(FASHION_PATH, weakness["icon"]))
+    for buff_entry in (fhz.get("buffList") or []):
+        for body_item in (buff_entry.get("bodyList") or []):
+            body_info = (body_item.get("bodyInfo") or {})
+            body = (body_info.get("body") or {})
+            if body.get("iconUrl"):
+                download_tasks.append(_download(ROLE_ICON_PATH, body["iconUrl"]))
 
     if download_tasks:
         await asyncio.gather(*download_tasks)
@@ -151,6 +167,55 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
             "stages": stages,
         })
 
+    # 构建 fightHardZone 上下文
+    fight_hard = None
+    if fhz and fhz.get("totalPoint"):
+        fhz_boss_icon_b64 = _local_b64(BOSS_ICON_PATH, fhz_boss.get("iconUrl", ""))
+        fhz_weaknesses = []
+        for w in (fhz_boss.get("weaknessList") or []):
+            fhz_weaknesses.append({
+                "name": w.get("name", ""),
+                "iconB64": _local_b64(FASHION_PATH, w.get("icon", "")),
+            })
+
+        fhz_stages = []
+        for buff_entry in (fhz.get("buffList") or []):
+            if not buff_entry.get("isActive"):
+                continue
+            buff_info = buff_entry.get("buff") or {}
+            team = []
+            for body_item in (buff_entry.get("bodyList") or []):
+                body_info = (body_item.get("bodyInfo") or {})
+                body = (body_info.get("body") or {})
+                grade = body_info.get("grade", "")
+                gi = _get_grade_info(grade)
+                team.append({
+                    "bodyName": body.get("bodyName", ""),
+                    "roleName": body.get("roleName", ""),
+                    "iconB64": _local_b64(ROLE_ICON_PATH, body.get("iconUrl", "")),
+                    "grade": grade,
+                    "gradeClass": gi["gradeClass"],
+                    "gradeDisplay": gi["gradeDisplay"],
+                    "isPlus": gi["isPlus"],
+                    "element": body.get("element", ""),
+                })
+            fhz_stages.append({
+                "stageName": buff_info.get("name", ""),
+                "point": buff_entry.get("point", 0),
+                "fightTime": buff_entry.get("fightTime", 0) or 0,
+                "autoFight": buff_entry.get("autoFight", False),
+                "team": team,
+            })
+
+        fight_hard = {
+            "bossName": fhz_boss.get("name", ""),
+            "bossIconB64": fhz_boss_icon_b64,
+            "totalPoint": fhz.get("totalPoint", 0),
+            "totalChallengeTimes": fhz.get("totalChallengeTimes", 0),
+            "weaknesses": fhz_weaknesses,
+            "stages": fhz_stages,
+        }
+
     context = {
         "account": {
             "roleId": account.roleId if account else uid,
@@ -167,11 +232,13 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
         "titleBgB64": image_to_base64(IMGS_PATH / "titleBg.png"),
         "contentBgB64": image_to_base64(IMGS_PATH / "contentBg.jpg"),
         "areaIconB64": image_to_base64(IMGS_PATH / "area-level4.png") if cage_data.challengeLevel == "80 - 120" else "",
-        "challengeArea": cage_data.challengeArea,
-        "challengeLevel": cage_data.challengeLevel,
-        "totalPoint": cage.totalPoint or 0,
-        "totalChallengeTimes": cage.totalChallengeTimes or 0,
+        "fightWarIconB64": image_to_base64(IMGS_PATH / "area-fightWar.png"),
+        "challengeArea": cage_data.challengeArea or "",
+        "challengeLevel": cage_data.challengeLevel or "",
+        "totalPoint": cage.totalPoint if cage else 0,
+        "totalChallengeTimes": cage.totalChallengeTimes if cage else 0,
         "bosses": bosses,
+        "fightHard": fight_hard,
     }
 
     if not PLAYWRIGHT_AVAILABLE:

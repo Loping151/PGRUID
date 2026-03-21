@@ -22,6 +22,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     render_html,
     image_to_base64,
 )
+from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
 from jinja2 import Environment, FileSystemLoader
 
 # 本地素材和模板路径
@@ -77,7 +78,7 @@ async def draw_roleinfo_img(
 ) -> Union[bytes, str]:
     user_id = ruser_id(ev)
     bot_id = ev.bot_id
-    ck = await pgr_api.get_self_pgr_ck(uid, user_id, bot_id)
+    _is_self, ck = await pgr_api.get_ck_result(uid, user_id, bot_id)
     if not ck:
         return f"[战双] 您的token已失效，请使用【{PREFIX}登录】重新绑定！"
 

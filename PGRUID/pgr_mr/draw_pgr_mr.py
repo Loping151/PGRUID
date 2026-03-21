@@ -16,11 +16,8 @@ from gsuid_core.utils.image.convert import convert_img
 from ..utils.api.model import PGRDailyData, PGRAccountData
 from ..utils.api.requests import pgr_api
 from ..utils.database.models import PGRUserSettings
-from ..utils.path import BAKE_PATH
 
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.waves_api import waves_api
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.constants import PGR_GAME_ID
+from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.render_utils import render_html, PLAYWRIGHT_AVAILABLE
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
@@ -54,36 +51,9 @@ def _pil_to_b64(img: Image.Image, quality: int = 75) -> str:
     return pil_to_b64(img, quality=quality)
 
 
-async def _get_pgr_ck(uid: str, user_id: str, bot_id: str) -> Optional[str]:
-    """获取 PGR 用户的 cookie"""
-    waves_user = await WavesUser.select_waves_user(uid, user_id, bot_id, game_id=PGR_GAME_ID)
-    if not waves_user or not waves_user.cookie:
-        logger.debug(f"[战双][体力] UID {uid} 未找到 PGR 用户记录(game_id={PGR_GAME_ID})")
-        return ""
-    if waves_user.status == "无效":
-        logger.debug(f"[战双][体力] UID {uid} cookie 已标记无效")
-        return ""
-
-    data = await waves_api.login_log(uid, waves_user.cookie)
-    if not data.success:
-        await data.mark_cookie_invalid(uid, waves_user.cookie)
-        logger.debug(f"[战双][体力] UID {uid} login_log 失败: {data.code} {data.msg}")
-        return ""
-
-    # 使用 PGR 自己的 refreshData（/haru/roleBox/refreshData）
-    data = await pgr_api.refresh_data(uid, waves_user.cookie)
-    if not data.success:
-        logger.debug(f"[战双][体力] UID {uid} refreshData 失败: {data.code} {data.msg}")
-        await data.mark_cookie_invalid(uid, waves_user.cookie)
-        return ""
-
-    await WavesUser.update_last_used_time(uid, user_id, bot_id, game_id=PGR_GAME_ID)
-    return waves_user.cookie
-
-
 async def _process_uid(uid: str, ev: Event) -> Optional[Dict]:
     """处理单个 UID 的数据获取"""
-    ck = await _get_pgr_ck(uid, ruser_id(ev), ev.bot_id)
+    _is_self, ck = await pgr_api.get_ck_result(uid, ruser_id(ev), ev.bot_id)
     if not ck:
         logger.info(f"[战双][体力] UID {uid} 获取cookie失败，跳过")
         return None

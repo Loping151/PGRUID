@@ -126,6 +126,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        text-align: center;
         font-size: 26px;
         font-weight: bold;
         flex-shrink: 0;
@@ -277,6 +278,58 @@
         {% endfor %}
     </div>
     {% endfor %}
+
+    <!-- 鏖战点 (fightHardZone) -->
+    {% if fightHard %}
+    <div class="summary-card">
+        {% if fightWarIconB64 %}<img src="{{ fightWarIconB64 }}" class="area-icon">{% endif %}
+        <div class="summary-info">
+            <h2>鏖战点</h2>
+        </div>
+        <div class="summary-stats">
+            <div>讨伐总值: <span class="score-hl">{{ fightHard.totalPoint }}</span></div>
+            <div>挑战次数: <span class="score-hl">{{ fightHard.totalChallengeTimes }}</span></div>
+        </div>
+    </div>
+
+    <div class="boss-group">
+        <div class="boss-header">
+            <div class="boss-avatar">
+                {% if fightHard.bossIconB64 %}<img src="{{ fightHard.bossIconB64 }}">{% endif %}
+            </div>
+            <div class="boss-title-info">
+                <div class="boss-name">{{ fightHard.bossName }}</div>
+                <div class="boss-total-score">讨伐总值: <span>{{ fightHard.totalPoint }}</span></div>
+                {% if fightHard.weaknesses %}
+                <div class="weakness-row">
+                    {% for w in fightHard.weaknesses %}
+                    {% if w.iconB64 %}<img src="{{ w.iconB64 }}" class="weakness-icon">{% endif %}
+                    <span class="weakness-name">{{ w.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% for stage in fightHard.stages %}
+        <div class="stage-item">
+            <div class="stage-difficulty">{{ stage.stageName }}</div>
+            <div class="stage-details">
+                <div>讨伐值: <span class="val">{{ stage.point }}</span></div>
+                <div>耗时: <span class="val">{{ stage.fightTime }}S</span>{% if stage.autoFight %} · 自动{% endif %}</div>
+            </div>
+            <div class="team-avatars">
+                {% for char in stage.team %}
+                <div class="avatar-card">
+                    {% if char.iconB64 %}<img src="{{ char.iconB64 }}">{% endif %}
+                    <div class="avatar-grade {{ char.gradeClass }}">{{ char.gradeDisplay }}{% if char.isPlus %}<span class="plus-mark">+</span>{% endif %}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
 </div>
 </body>

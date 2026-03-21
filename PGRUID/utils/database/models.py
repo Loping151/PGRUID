@@ -1,9 +1,9 @@
 """PGRUID 数据库模型"""
-from typing import Any, Dict, List, Type, Optional, TypeVar
+from typing import Dict, List, Type, Optional, TypeVar
 
 from sqlmodel import Field, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from gsuid_core.utils.database.base_models import BaseBotIDModel, with_session
+from gsuid_core.utils.database.base_models import BaseIDModel, BaseBotIDModel, with_session
 
 # 从 xwuid 导入数据库模型
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.waves_subscribe import (
@@ -11,6 +11,43 @@ from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.waves
 )
 
 T_PGRUserSettings = TypeVar("T_PGRUserSettings", bound="PGRUserSettings")
+T_PGRServerMap = TypeVar("T_PGRServerMap", bound="PGRServerMap")
+
+
+class PGRServerMap(BaseIDModel, table=True):
+    """PGR UID -> ServerId 映射表"""
+
+    uid: str = Field(default="", title="游戏UID", unique=True)
+    server_id: str = Field(default="1000", title="服务器ID")
+
+    @classmethod
+    @with_session
+    async def get_server_id(
+        cls: Type[T_PGRServerMap],
+        session: AsyncSession,
+        uid: str,
+    ) -> Optional[str]:
+        sql = select(cls.server_id).where(cls.uid == uid)
+        result = await session.execute(sql)
+        row = result.scalar_one_or_none()
+        return row
+
+    @classmethod
+    @with_session
+    async def set_server_id(
+        cls: Type[T_PGRServerMap],
+        session: AsyncSession,
+        uid: str,
+        server_id: str,
+    ):
+        sql = select(cls).where(cls.uid == uid)
+        result = await session.execute(sql)
+        existing = result.scalars().first()
+        if existing:
+            existing.server_id = server_id
+            session.add(existing)
+        else:
+            session.add(cls(uid=uid, server_id=server_id))
 
 
 class PGRUserSettings(BaseBotIDModel, table=True):

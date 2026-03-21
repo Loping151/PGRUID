@@ -263,18 +263,28 @@
     }
 
     /* 角色评级渐变字 */
-    .char-grade-badge {
+    .char-grade-wrap {
         position: absolute;
         top: 6px;
         left: 6px;
         z-index: 2;
+        padding: 3px 8px 6px 6px;
+    }
+    .char-grade-bg {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255, 255, 255, 0.55);
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+        z-index: 0;
+    }
+    .char-grade-badge {
+        position: relative;
+        z-index: 1;
         font-size: 26px;
         font-weight: 900;
         font-family: 'Arial', sans-serif;
         line-height: 1;
         letter-spacing: 0.5px;
-        background: none;
-        padding: 0;
     }
 
     /* SSS / SSSx: 上黑下金 */
@@ -420,7 +430,7 @@
                 {% if char.iconB64 %}
                 <img src="{{ char.iconB64 }}" class="char-icon">
                 {% endif %}
-                <div class="char-grade-badge {{ char.gradeClass }}">{{ char.gradeDisplay }}{% if char.isPlus %}<span class="plus-mark">+</span>{% endif %}</div>
+                <div class="char-grade-wrap"><div class="char-grade-bg"></div><div class="char-grade-badge {{ char.gradeClass }}">{{ char.gradeDisplay }}{% if char.isPlus %}<span class="plus-mark">+</span>{% endif %}</div></div>
                 <div class="char-fight">{{ char.fightAbility }}</div>
             </div>
             <div class="char-info">

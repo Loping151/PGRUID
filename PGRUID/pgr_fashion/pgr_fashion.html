@@ -79,6 +79,10 @@
         grid-template-columns: repeat(5, 1fr);
         gap: 10px;
     }
+    .fashion-grid.dense {
+        grid-template-columns: repeat(10, 1fr);
+        gap: 6px;
+    }
     .fashion-card {
         border-radius: 4px;
         overflow: hidden;
@@ -124,6 +128,7 @@
 </style>
 </head>
 <body>
+{% set total_fashions = charFashions|length + weaponFashions|length %}
 <div class="container">
 
     <!-- Header -->
@@ -157,7 +162,7 @@
         <img src="{{ titleBgB64 }}">
         <span>角色涂装 ({{ charFashions|length }}) · {{ charRate }}%</span>
     </div>
-    <div class="fashion-grid">
+    <div class="fashion-grid{% if total_fashions > 200 %} dense{% endif %}">
         {% for f in charFashions %}
         <div class="fashion-card">
             <div class="fashion-img">
@@ -176,7 +181,7 @@
         <img src="{{ titleBgB64 }}">
         <span>武器涂装 ({{ weaponFashions|length }}) · {{ weaponRate }}%</span>
     </div>
-    <div class="fashion-grid">
+    <div class="fashion-grid{% if total_fashions > 200 %} dense{% endif %}">
         {% for f in weaponFashions %}
         <div class="fashion-card">
             <div class="fashion-img">
