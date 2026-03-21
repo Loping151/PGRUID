@@ -5,7 +5,7 @@
 import json
 import asyncio
 from pathlib import Path
-from typing import Dict, Union, Any
+from typing import Dict, Union
 
 from gsuid_core.logger import logger
 
@@ -97,30 +97,16 @@ async def _download_all_urls(detail_data: dict):
         await asyncio.gather(*tasks)
 
 
-# ===== 玩家数据保存（过滤 URL）=====
-
-def _filter_urls(obj: Any) -> Any:
-    """递归过滤掉所有 URL 字段，只保留非 URL 数据"""
-    if isinstance(obj, dict):
-        return {
-            k: _filter_urls(v)
-            for k, v in obj.items()
-            if not (isinstance(v, str) and (v.startswith("http://") or v.startswith("https://")))
-        }
-    elif isinstance(obj, list):
-        return [_filter_urls(item) for item in obj]
-    return obj
-
+# ===== 玩家数据保存 =====
 
 def _save_player_data(uid: str, body_id: int, raw_data: dict):
-    """保存角色详情到玩家目录（过滤 URL）"""
+    """保存角色详情到玩家目录"""
     player_dir = PLAYER_PATH / uid
     player_dir.mkdir(parents=True, exist_ok=True)
 
-    filtered = _filter_urls(raw_data)
     path = player_dir / f"{body_id}.json"
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(filtered, f, ensure_ascii=False, indent=2)
+        json.dump(raw_data, f, ensure_ascii=False, indent=2)
 
 
 def _load_player_data(uid: str, body_id: int) -> dict:
@@ -201,7 +187,7 @@ async def draw_char_card(
             account_path = PLAYER_PATH / uid / "_account.json"
             account_path.parent.mkdir(parents=True, exist_ok=True)
             with open(account_path, "w", encoding="utf-8") as f:
-                json.dump(_filter_urls(account_data.model_dump()), f, ensure_ascii=False, indent=2)
+                json.dump(account_data.model_dump(), f, ensure_ascii=False, indent=2)
 
     # 从 raw_data 重建 model
     from ..utils.api.model import PGRRoleDetailData, PGRAccountData
