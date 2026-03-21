@@ -6,7 +6,7 @@ from gsuid_core.logger import logger
 
 Plugins(
     name="PGRUID",
-    force_prefix=["pgr", "zs", "zz"],
+    force_prefix=["pgr", "zs"],
     allow_empty_prefix=False
 )
 

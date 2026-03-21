@@ -7,9 +7,13 @@ from typing import Dict, List, Optional
 
 from gsuid_core.logger import logger
 
+from pathlib import Path
+
 from .path import FULL_BODY_PATH, CHAR_ALIAS_PATH
 from .image import pic_download_from_url
 from .path import ROLE_ICON_PATH
+
+BUILTIN_ALIAS_PATH = Path(__file__).parent / "builtin_alias.json"
 
 
 # ===== full_body.json =====
@@ -96,8 +100,19 @@ def get_name2id() -> Dict[str, int]:
 
 # ===== 自定义别名 =====
 
-def _load_alias() -> Dict[str, List[str]]:
-    """加载别名: { bodyId_str: [alias1, alias2, ...] }"""
+def _load_builtin_alias() -> Dict[str, List[str]]:
+    """加载内置别名"""
+    if not BUILTIN_ALIAS_PATH.exists():
+        return {}
+    try:
+        with open(BUILTIN_ALIAS_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _load_user_alias() -> Dict[str, List[str]]:
+    """加载用户自定义别名"""
     if not CHAR_ALIAS_PATH.exists():
         return {}
     try:
@@ -105,6 +120,28 @@ def _load_alias() -> Dict[str, List[str]]:
             return json.load(f)
     except Exception:
         return {}
+
+
+def _load_alias() -> Dict[str, List[str]]:
+    """加载合并后的别名: 内置 + 用户自定义，用户优先"""
+    builtin = _load_builtin_alias()
+    user = _load_user_alias()
+
+    merged: Dict[str, List[str]] = {}
+    all_keys = set(builtin.keys()) | set(user.keys())
+    for key in all_keys:
+        b_list = builtin.get(key, [])
+        u_list = user.get(key, [])
+        # 用户别名在前，去重
+        seen: set = set()
+        combined: List[str] = []
+        for a in u_list + b_list:
+            if a not in seen:
+                seen.add(a)
+                combined.append(a)
+        merged[key] = combined
+
+    return merged
 
 
 def _save_alias(data: Dict[str, List[str]]):

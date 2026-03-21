@@ -165,32 +165,40 @@ async def pgr_refresh_all(bot: Bot, ev: Event):
 # ===== 别名管理 =====
 
 @sv_alias.on_regex(
-    rf"^添加(?P<name>{CHAR_NAME_PATTERN})别名(?P<alias>{CHAR_NAME_PATTERN})$",
+    rf"^添加(?P<name>{CHAR_NAME_PATTERN})别名(?P<aliases>.+)$",
     block=True,
 )
 async def pgr_add_alias(bot: Bot, ev: Event):
+    import re
     name = ev.regex_dict.get("name", "").strip()
-    alias = ev.regex_dict.get("alias", "").strip()
-    if not name or not alias:
+    raw = ev.regex_dict.get("aliases", "").strip()
+    if not name or not raw:
         return
-    msg = add_alias(name, alias)
-    return await _send(bot, ev, f"[战双] {msg}")
+    alias_list = [a.strip() for a in re.split(r'[,，\s]+', raw) if a.strip()]
+    if not alias_list:
+        return
+    msgs = [add_alias(name, a) for a in alias_list]
+    return await _send(bot, ev, "[战双] " + "\n".join(msgs))
 
 
 @sv_alias.on_regex(
-    rf"^删除(?P<name>{CHAR_NAME_PATTERN})别名(?P<alias>{CHAR_NAME_PATTERN})$",
+    rf"^删除(?P<name>{CHAR_NAME_PATTERN})别名(?P<aliases>.+)$",
     block=True,
 )
 async def pgr_remove_alias(bot: Bot, ev: Event):
+    import re
     name = ev.regex_dict.get("name", "").strip()
-    alias = ev.regex_dict.get("alias", "").strip()
-    if not name or not alias:
+    raw = ev.regex_dict.get("aliases", "").strip()
+    if not name or not raw:
         return
-    msg = remove_alias(name, alias)
-    return await _send(bot, ev, f"[战双] {msg}")
+    alias_list = [a.strip() for a in re.split(r'[,，\s]+', raw) if a.strip()]
+    if not alias_list:
+        return
+    msgs = [remove_alias(name, a) for a in alias_list]
+    return await _send(bot, ev, "[战双] " + "\n".join(msgs))
 
 
-@sv_alias.on_regex(
+@sv_char.on_regex(
     rf"^(?P<name>{CHAR_NAME_PATTERN})别名(?:列表)?$",
     block=True,
 )
