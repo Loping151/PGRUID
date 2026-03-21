@@ -1,4 +1,3 @@
-import re
 from typing import Any, List
 
 from gsuid_core.sv import SV
@@ -13,7 +12,6 @@ from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind,
 from XutheringWavesUID.XutheringWavesUID.utils.constants import PGR_GAME_ID, WAVES_GAME_ID
 from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.deal import add_cookie, get_cookie
 from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.login_succ import login_success_msg
-from XutheringWavesUID.XutheringWavesUID.wutheringwaves_login.login import code_login, page_login
 from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import PREFIX as XW_PREFIX
 
 pgr_bind_uid = SV("战双绑定UID", priority=10)
@@ -34,25 +32,12 @@ async def _send_text(bot: Bot, ev: Event, msg: str):
 
 @pgr_login.on_command(("登录", "登陆", "登入", "login", "dl"), block=True)
 async def pgr_login_msg(bot: Bot, ev: Event):
-    at_sender = True if ev.group_id else False
-
-    await bot.send(
-        (" " if at_sender else "")
-        + f"[战双] 如已使用过【{XW_PREFIX}登录】则无需再次登录！",
-        at_sender=at_sender,
+    return await _send_text(
+        bot, ev,
+        f"[战双] 库洛账号通用，请使用【{XW_PREFIX}登录】进行登录\n"
+        f"登录后战双UID将自动绑定\n"
+        f"也可使用【{PREFIX}添加token xxx】直接绑定"
     )
-
-    text = re.sub(r'["\n\t ]+', "", ev.text.strip())
-    text = text.replace("，", ",")
-    if text == "":
-        return await page_login(bot, ev)
-    elif "," in text:
-        return await code_login(bot, ev, text)
-    elif text.isdigit():
-        return
-
-    msg = f"[战双] 账号登录失败\n请重新输入命令【{PREFIX}登录】进行登录"
-    return await bot.send((" " if at_sender else "") + msg, at_sender=at_sender)
 
 
 # ===== 绑定/切换/删除/查看 =====
