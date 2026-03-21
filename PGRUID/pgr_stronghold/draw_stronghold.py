@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Union
 
 from gsuid_core.logger import logger
+from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.image import pic_download_from_url
@@ -16,7 +17,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     render_html,
     image_to_base64,
 )
-from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
+from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
 from jinja2 import Environment, FileSystemLoader
 
 IMGS_PATH = Path(__file__).parent / "imgs"
@@ -46,7 +47,7 @@ async def _download(path: Path, url: str):
 
 
 async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
-    user_id = ev.user_id
+    user_id = ruser_id(ev)
     bot_id = ev.bot_id
 
     ck = await pgr_api.get_self_pgr_ck(uid, user_id, bot_id)
@@ -67,7 +68,7 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
 
     # 收集下载任务
     download_tasks = []
-    for team in raw.get("teamList", []):
+    for team in (raw.get("teamList") or []):
         elem = team.get("element") or {}
         if elem.get("iconUrl"):
             download_tasks.append(_download(FASHION_PATH, elem["iconUrl"]))
@@ -81,7 +82,7 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
             if char.get("iconUrl"):
                 download_tasks.append(_download(ROLE_ICON_PATH, char["iconUrl"]))
     # buff icons
-    for group in raw.get("groupList", []):
+    for group in (raw.get("groupList") or []):
         for bl in (group.get("buffList") or []):
             buff = bl.get("buff") or {}
             if buff.get("iconUrl"):
@@ -91,12 +92,16 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
         await asyncio.gather(*download_tasks, return_exceptions=True)
 
     # 用户头像
-    avatar_img = await get_event_avatar(ev, size=200)
+    avatar_img = None
+    if ev.bot_id == "onebot":
+        avatar_img = await get_qq_avatar(user_id, size=640)
+    if avatar_img is None:
+        avatar_img = await get_event_avatar(ev)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # 矿区列表
     groups = []
-    for g in raw.get("groupList", []):
+    for g in (raw.get("groupList") or []):
         buffs = []
         for bl in (g.get("buffList") or []):
             buff = bl.get("buff") or {}
@@ -107,14 +112,15 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
             })
         groups.append({
             "groupName": g.get("groupName", ""),
-            "pass": g.get("pass", False),
+            "pass": g.get("pass_", g.get("pass", False)),
+            "isUnlock": g.get("isUnlock", False),
             "completeBuffNum": g.get("completeBuffNum", 0),
             "buffs": buffs,
         })
 
     # 预设队伍
     teams = []
-    for team in raw.get("teamList", []):
+    for team in (raw.get("teamList") or []):
         elem = team.get("element") or {}
         rune = team.get("rune") or {}
         sub_rune = team.get("subRune") or {}

@@ -207,7 +207,7 @@
                 <div class="zone-title">{{ zone.stageName }} · {{ zone.description }}</div>
                 <div class="zone-stats">
                     <span>积分: <span class="val">{{ zone.point }}</span></span>
-                    <span>波次: <span class="val">{{ zone.totalNum }}</span></span>
+                    <span>波次: <span class="val">{{ zone.npcGroup }}</span></span>
                 </div>
             </div>
         </div>
@@ -224,7 +224,7 @@
             </div>
             <div class="zone-details">
                 <div>积分: <span class="val">{{ bf.point }}</span></div>
-                <div>耗时: <span class="val">{{ bf.fightTime }}S</span></div>
+                {% if bf.fightTime %}<div>耗时: <span class="val">{{ bf.fightTime }}S</span></div>{% endif %}
             </div>
             <div class="team-avatars">
                 {% for char in bf.team %}

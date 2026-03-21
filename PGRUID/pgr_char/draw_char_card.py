@@ -45,12 +45,12 @@ async def _download_url(path: Path, url: str, save_name: str = ""):
 async def _download_all_urls(detail_data: dict):
     """并发下载角色详情中的所有 URL 资源"""
     tasks = []
-    char = detail_data.get("character", {})
+    char = (detail_data.get("character") or {})
     if not char:
         return
 
     # 角色立绘（用 bodyId 命名）
-    body = char.get("body", {})
+    body = (char.get("body") or {})
     body_id = str(body.get("bodyId", "")) if body else ""
     if body:
         if body.get("iconUrl"):
@@ -59,35 +59,35 @@ async def _download_all_urls(detail_data: dict):
             tasks.append(_download_url(ROLE_PILE_PATH, body["imgUrl"], save_name=body_id))
 
     # 武器
-    weapon_info = char.get("weaponInfo", {})
+    weapon_info = char.get("weaponInfo") or {}
     if weapon_info:
-        weapon = weapon_info.get("weapon", {})
+        weapon = weapon_info.get("weapon") or {}
         if weapon and weapon.get("iconUrl"):
             tasks.append(_download_url(WEAPON_FASHION_PATH, weapon["iconUrl"]))
-        suit = weapon_info.get("suit", {})
+        suit = weapon_info.get("suit") or {}
         if suit and suit.get("iconUrl"):
             tasks.append(_download_url(WEAPON_FASHION_PATH, suit["iconUrl"]))
-        for res in weapon_info.get("resonanceList", []):
+        for res in (weapon_info.get("resonanceList") or []):
             if res.get("iconUrl"):
                 tasks.append(_download_url(WEAPON_FASHION_PATH, res["iconUrl"]))
 
     # 辅助机
-    partner = char.get("partner", {})
+    partner = char.get("partner") or {}
     if partner:
-        p = partner.get("partner", {})
+        p = partner.get("partner") or {}
         if p and p.get("iconUrl"):
             tasks.append(_download_url(FASHION_PATH, p["iconUrl"]))
-        for skill in partner.get("skillList", []):
+        for skill in (partner.get("skillList") or []):
             if skill.get("iconUrl"):
                 tasks.append(_download_url(FASHION_PATH, skill["iconUrl"]))
 
     # 芯片套装
-    for chip_suit in char.get("chipSuitList", []):
+    for chip_suit in (char.get("chipSuitList") or []):
         if chip_suit.get("iconUrl"):
             tasks.append(_download_url(FASHION_PATH, chip_suit["iconUrl"]))
 
     # 芯片共鸣
-    for chip_res in char.get("chipResonanceList", []):
+    for chip_res in (char.get("chipResonanceList") or []):
         for key in ("chipIconUrl", "superSlotIconUrl", "subSlotIconUrl"):
             url = chip_res.get(key)
             if url:
@@ -164,7 +164,8 @@ async def draw_char_card(
     ev, uid: str, body_id: int, use_cache: bool = True
 ) -> Union[bytes, str]:
     from gsuid_core.models import Event
-    user_id = ev.user_id
+    from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
+    user_id = ruser_id(ev)
     bot_id = ev.bot_id
 
     body_name = get_body_name_by_id(body_id)
@@ -225,8 +226,12 @@ async def draw_char_card(
                 pass
 
     # 用户头像
-    from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
-    avatar_img = await get_event_avatar(ev, size=200)
+    from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
+    avatar_img = None
+    if ev.bot_id == "onebot":
+        avatar_img = await get_qq_avatar(user_id, size=640)
+    if avatar_img is None:
+        avatar_img = await get_event_avatar(ev)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # 准备渲染上下文
@@ -243,7 +248,7 @@ async def draw_char_card(
             weapon_b64 = _local_b64(WEAPON_FASHION_PATH, char.weaponInfo.weapon.iconUrl)
         if char.weaponInfo.suit:
             suit_b64 = _local_b64(WEAPON_FASHION_PATH, char.weaponInfo.suit.iconUrl)
-        for res in char.weaponInfo.resonanceList:
+        for res in (char.weaponInfo.resonanceList or []):
             resonance_b64s.append({
                 "name": res.name,
                 "iconB64": _local_b64(WEAPON_FASHION_PATH, res.iconUrl),
@@ -256,7 +261,7 @@ async def draw_char_card(
     if char.partner:
         if char.partner.partner:
             partner_b64 = _local_b64(FASHION_PATH, char.partner.partner.iconUrl)
-        for skill in char.partner.skillList:
+        for skill in (char.partner.skillList or []):
             partner_skills.append({
                 "name": skill.name,
                 "iconB64": _local_b64(FASHION_PATH, skill.iconUrl),
@@ -266,7 +271,7 @@ async def draw_char_card(
 
     # 芯片套装
     chip_suits = []
-    for cs in char.chipSuitList:
+    for cs in (char.chipSuitList or []):
         chip_suits.append({
             "name": cs.name,
             "iconB64": _local_b64(FASHION_PATH, cs.iconUrl),
@@ -278,7 +283,7 @@ async def draw_char_card(
 
     # 芯片共鸣
     chip_resonances = []
-    for cr in char.chipResonanceList:
+    for cr in (char.chipResonanceList or []):
         chip_resonances.append({
             "site": cr.site,
             "chipName": cr.chipName,
@@ -291,6 +296,8 @@ async def draw_char_card(
             "subAwake": cr.subAwake,
             "subDesc": cr.subDescription,
         })
+
+    from ..pgr_roleinfo.draw_roleinfo import _get_grade_info
 
     context = {
         "body": {
@@ -327,6 +334,7 @@ async def draw_char_card(
             "iconB64": partner_b64,
             "level": char.partner.level if char.partner else 0,
             "grade": char.partner.grade if char.partner else "",
+            "gradeInfo": _get_grade_info(char.partner.grade or "") if char.partner else _get_grade_info(""),
             "quality": char.partner.quality if char.partner else 0,
             "skills": partner_skills,
         },
@@ -367,7 +375,6 @@ async def draw_char_card(
     context["elemIcons"] = elem_icons
 
     # 品级渐变 class
-    from ..pgr_roleinfo.draw_roleinfo import _get_grade_info
     context["gradeInfo"] = _get_grade_info(char.grade or "")
 
     # 星级

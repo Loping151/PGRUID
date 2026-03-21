@@ -18,6 +18,7 @@ from ..utils.name_convert import (
 from .draw_char_card import draw_char_card
 
 from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
+from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 sv_char = SV("战双角色面板", priority=5)
 sv_refresh = SV("战双刷新面板", priority=4)
@@ -63,7 +64,7 @@ async def pgr_char_panel(bot: Bot, ev: Event):
     if body_id is None:
         return
 
-    uid = await WavesBind.get_uid_by_game(ev.user_id, ev.bot_id, game_name="pgr")
+    uid = await WavesBind.get_uid_by_game(ruser_id(ev), ev.bot_id, game_name="pgr")
     if not uid:
         return await _send(bot, ev, f"[战双] 您还未绑定战双UID，请使用【{PREFIX}登录】完成绑定！")
 
@@ -141,9 +142,9 @@ async def pgr_refresh_all(bot: Bot, ev: Event):
     await update_full_body(role_index)
 
     # 逐个刷新角色详情（限速：每个间隔 0.3s）
-    total = len(role_index.characterList)
+    total = len(role_index.characterList or [])
     success = 0
-    for i, char in enumerate(role_index.characterList):
+    for i, char in enumerate(role_index.characterList or []):
         try:
             detail = await pgr_api.get_role_detail(uid, ck, char.bodyId)
             if detail and detail.character:

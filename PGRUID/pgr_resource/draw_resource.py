@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Union
 
 from gsuid_core.logger import logger
+from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..pgr_config import PREFIX
@@ -15,7 +16,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     render_html,
     image_to_base64,
 )
-from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
+from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
 from jinja2 import Environment, FileSystemLoader
 
 IMGS_PATH = Path(__file__).parent / "imgs"
@@ -24,7 +25,7 @@ pgr_resource_templates = Environment(loader=FileSystemLoader([str(_TEMPLATE_DIR)
 
 
 async def draw_resource_img(ev, uid: str) -> Union[bytes, str]:
-    user_id = ev.user_id
+    user_id = ruser_id(ev)
     bot_id = ev.bot_id
 
     ck = await pgr_api.get_self_pgr_ck(uid, user_id, bot_id)
@@ -41,7 +42,11 @@ async def draw_resource_img(ev, uid: str) -> Union[bytes, str]:
         return "[战双] 获取资源数据失败"
 
     # 用户头像
-    avatar_img = await get_event_avatar(ev, size=200)
+    avatar_img = None
+    if ev.bot_id == "onebot":
+        avatar_img = await get_qq_avatar(user_id, size=640)
+    if avatar_img is None:
+        avatar_img = await get_event_avatar(ev)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # 本地素材
@@ -69,7 +74,7 @@ async def draw_resource_img(ev, uid: str) -> Union[bytes, str]:
         "months": [],
     }
 
-    for m in half_year.perMonthList:
+    for m in (half_year.perMonthList or []):
         context["months"].append({
             "month": m.month,
             "blackCard": m.monthBlackCard,

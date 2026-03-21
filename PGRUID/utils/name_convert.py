@@ -37,7 +37,7 @@ async def update_full_body(role_index) -> Dict[str, dict]:
     full_body = load_full_body()
     old_count = len(full_body)
 
-    for char in role_index.characterList:
+    for char in (role_index.characterList or []):
         body_id = str(char.bodyId)
         full_body[body_id] = {
             "bodyId": char.bodyId,

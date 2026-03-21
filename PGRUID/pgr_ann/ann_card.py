@@ -24,6 +24,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.resource.RESOURCE_PATH import (
     waves_templates,
 )
 from XutheringWavesUID.XutheringWavesUID.utils.image import pic_download_from_url
+from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
 
 
 def format_date(ts) -> str:

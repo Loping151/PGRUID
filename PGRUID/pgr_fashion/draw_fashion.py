@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Union
 
 from gsuid_core.logger import logger
+from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.image import pic_download_from_url
@@ -18,7 +19,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     render_html,
     image_to_base64,
 )
-from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
+from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
 from jinja2 import Environment, FileSystemLoader
 
 IMGS_PATH = Path(__file__).parent / "imgs"
@@ -40,7 +41,7 @@ def _local_b64(cache_dir: Path, url: str) -> str:
 
 
 async def draw_fashion_img(ev, uid: str) -> Union[bytes, str]:
-    user_id = ev.user_id
+    user_id = ruser_id(ev)
     bot_id = ev.bot_id
 
     ck = await pgr_api.get_self_pgr_ck(uid, user_id, bot_id)
@@ -59,24 +60,28 @@ async def draw_fashion_img(ev, uid: str) -> Union[bytes, str]:
     # 下载所有涂装图标
     tasks = []
     if char_fashion:
-        for f in char_fashion.fashionList:
+        for f in (char_fashion.fashionList or []):
             if f.skinIcon:
                 tasks.append(pic_download_from_url(FASHION_PATH, f.skinIcon))
     if weapon_fashion:
-        for f in weapon_fashion.fashionList:
+        for f in (weapon_fashion.fashionList or []):
             if f.skinIcon:
                 tasks.append(pic_download_from_url(WEAPON_FASHION_PATH, f.skinIcon))
     if tasks:
         await asyncio.gather(*tasks, return_exceptions=True)
 
     # 用户头像
-    avatar_img = await get_event_avatar(ev, size=200)
+    avatar_img = None
+    if ev.bot_id == "onebot":
+        avatar_img = await get_qq_avatar(user_id, size=640)
+    if avatar_img is None:
+        avatar_img = await get_event_avatar(ev)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # 构建涂装列表
     char_fashions = []
     if char_fashion:
-        for f in char_fashion.fashionList:
+        for f in (char_fashion.fashionList or []):
             char_fashions.append({
                 "name": f.skinName,
                 "iconB64": _local_b64(FASHION_PATH, f.skinIcon),
@@ -84,7 +89,7 @@ async def draw_fashion_img(ev, uid: str) -> Union[bytes, str]:
 
     weapon_fashions = []
     if weapon_fashion:
-        for f in weapon_fashion.fashionList:
+        for f in (weapon_fashion.fashionList or []):
             weapon_fashions.append({
                 "name": f.skinName,
                 "iconB64": _local_b64(WEAPON_FASHION_PATH, f.skinIcon),

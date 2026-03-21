@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Union
 
 from gsuid_core.logger import logger
+from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.image import pic_download_from_url
@@ -16,7 +17,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     render_html,
     image_to_base64,
 )
-from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
+from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
 from jinja2 import Environment, FileSystemLoader
 
 IMGS_PATH = Path(__file__).parent / "imgs"
@@ -38,7 +39,7 @@ def _local_b64(cache_dir: Path, url: str) -> str:
 
 
 async def draw_transfinite_img(ev, uid: str) -> Union[bytes, str]:
-    user_id = ev.user_id
+    user_id = ruser_id(ev)
     bot_id = ev.bot_id
 
     ck = await pgr_api.get_self_pgr_ck(uid, user_id, bot_id)
@@ -59,14 +60,18 @@ async def draw_transfinite_img(ev, uid: str) -> Union[bytes, str]:
     download_tasks = []
     if trans_data.bossIconUrl:
         download_tasks.append(pic_download_from_url(FASHION_PATH, trans_data.bossIconUrl))
-    for char in trans_data.characterList:
+    for char in (trans_data.characterList or []):
         if char.iconUrl:
             download_tasks.append(pic_download_from_url(ROLE_ICON_PATH, char.iconUrl))
     if download_tasks:
         await asyncio.gather(*download_tasks, return_exceptions=True)
 
     # 用户头像
-    avatar_img = await get_event_avatar(ev, size=200)
+    avatar_img = None
+    if ev.bot_id == "onebot":
+        avatar_img = await get_qq_avatar(user_id, size=640)
+    if avatar_img is None:
+        avatar_img = await get_event_avatar(ev)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # Boss 图标
@@ -74,7 +79,7 @@ async def draw_transfinite_img(ev, uid: str) -> Union[bytes, str]:
 
     # 角色列表
     characters = []
-    for char in trans_data.characterList:
+    for char in (trans_data.characterList or []):
         gi = _get_grade_info(char.grade or "")
         characters.append({
             "bodyName": char.bodyName or "",

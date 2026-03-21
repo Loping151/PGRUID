@@ -21,7 +21,7 @@ from ..utils.path import BAKE_PATH
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.waves_api import waves_api
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.constants import PGR_GAME_ID
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
+from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.render_utils import render_html, PLAYWRIGHT_AVAILABLE
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
@@ -168,6 +168,7 @@ async def draw_mr_img(bot: Bot, ev: Event):
         combined = Image.new("RGBA", (based_w, total_h), (0, 0, 0, 0))
         y = 0
         for img in images:
+            img = img.convert("RGBA")
             combined.paste(img, (0, y), img)
             y += img.height
         return await convert_img(combined)
@@ -184,7 +185,11 @@ async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
     uid: str = valid["uid"]
 
     # 用户头像（和卡片一致，QQ头像 size=200）
-    avatar = await get_event_avatar(ev, size=200)
+    avatar = None
+    if ev.bot_id == "onebot":
+        avatar = await get_qq_avatar(ruser_id(ev), size=640)
+    if avatar is None:
+        avatar = await get_event_avatar(ev)
     head_b64 = _pil_to_b64(avatar, quality=75)
 
     # 准备图标 b64（和卡片指令一致的素材）
@@ -248,7 +253,7 @@ async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
 
     # Boss 任务卡片
     tasks = []
-    for boss in daily.bossData:
+    for boss in (daily.bossData or []):
         if not boss.name:
             continue
         time_text = ""

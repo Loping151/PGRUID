@@ -127,7 +127,7 @@
       {
         "name": "诺曼复兴战",
         "desc": "查看诺曼矿区进度与预设队伍",
-        "eg": "诺曼",
+        "eg": "矿区",
         "need_ck": true,
         "need_sk": false,
         "need_admin": false

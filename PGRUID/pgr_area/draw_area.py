@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Union
 
 from gsuid_core.logger import logger
+from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.image import pic_download_from_url
@@ -16,7 +17,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     render_html,
     image_to_base64,
 )
-from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
+from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
 from jinja2 import Environment, FileSystemLoader
 
 IMGS_PATH = Path(__file__).parent / "imgs"
@@ -46,7 +47,7 @@ async def _download(path: Path, url: str):
 
 
 async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
-    user_id = ev.user_id
+    user_id = ruser_id(ev)
     bot_id = ev.bot_id
 
     ck = await pgr_api.get_self_pgr_ck(uid, user_id, bot_id)
@@ -65,11 +66,11 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
 
     area = area_data.areaInfo
     raw = area_data.model_dump()
-    ai = raw.get("areaInfo", {})
+    ai = raw.get("areaInfo") or {}
 
     # 收集下载任务
     download_tasks = []
-    for stage in ai.get("stageFightInfoList", []):
+    for stage in (ai.get("stageFightInfoList") or []):
         if stage.get("stageIconUrl"):
             download_tasks.append(_download(FASHION_PATH, stage["stageIconUrl"]))
         for buff_fight in (stage.get("areaBuffFightInfoList") or []):
@@ -86,12 +87,16 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
         await asyncio.gather(*download_tasks)
 
     # 用户头像
-    avatar_img = await get_event_avatar(ev, size=200)
+    avatar_img = None
+    if ev.bot_id == "onebot":
+        avatar_img = await get_qq_avatar(user_id, size=640)
+    if avatar_img is None:
+        avatar_img = await get_event_avatar(ev)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # 构建战区列表
     zones = []
-    for stage in ai.get("stageFightInfoList", []):
+    for stage in (ai.get("stageFightInfoList") or []):
         stage_icon_b64 = _local_b64(FASHION_PATH, stage.get("stageIconUrl", ""))
 
         # 每个 buff 关卡
@@ -109,7 +114,7 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
             team = []
             for body_item in (bf.get("bodyList") or []):
                 body_info = body_item.get("bodyInfo") or {}
-                body = body_info.get("body", {})
+                body = (body_info.get("body") or {})
                 grade = body_info.get("grade", "")
                 gi = _get_grade_info(grade)
                 team.append({
@@ -135,7 +140,7 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
             "description": stage.get("description", ""),
             "stageIconB64": stage_icon_b64,
             "point": stage.get("point", 0),
-            "totalNum": stage.get("totalNum", 0),
+            "npcGroup": stage.get("npcGroup", 0),
             "buffFights": buff_fights,
         })
 

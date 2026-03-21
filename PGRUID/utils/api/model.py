@@ -1,12 +1,25 @@
 """PGR API 响应模型"""
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+
+class PGRBaseModel(BaseModel):
+    """基类：自动过滤列表字段中的 None 元素"""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _filter_none_in_lists(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, list):
+                    data[key] = [item for item in value if item is not None]
+        return data
 
 
 # ===== baseData =====
 
-class PGRAccountData(BaseModel):
+class PGRAccountData(PGRBaseModel):
     """战双账号数据"""
     roleId: Optional[str] = ""
     level: Optional[int] = 0
@@ -16,7 +29,7 @@ class PGRAccountData(BaseModel):
     rank: Optional[int] = 0
 
 
-class PGRBaseData(BaseModel):
+class PGRBaseData(PGRBaseModel):
     """战双基础数据"""
     show: Optional[bool] = False
     characterCount: Optional[int] = 0
@@ -32,7 +45,7 @@ class PGRBaseData(BaseModel):
 
 # ===== dailyData =====
 
-class PGRDailyItem(BaseModel):
+class PGRDailyItem(PGRBaseModel):
     """日常数据项（血清/委托/活跃/Boss等）"""
     name: Optional[str] = None
     key: Optional[str] = None
@@ -44,19 +57,19 @@ class PGRDailyItem(BaseModel):
     total: Optional[int] = 0
 
 
-class PGRDailyData(BaseModel):
+class PGRDailyData(PGRBaseModel):
     """战双日常数据"""
     serverTime: Optional[int] = 0
-    actionData: PGRDailyItem = Field(default_factory=PGRDailyItem)
-    dormData: PGRDailyItem = Field(default_factory=PGRDailyItem)
-    activeData: PGRDailyItem = Field(default_factory=PGRDailyItem)
-    bossData: List[PGRDailyItem] = Field(default_factory=list)
+    actionData: Optional[PGRDailyItem] = Field(default_factory=PGRDailyItem)
+    dormData: Optional[PGRDailyItem] = Field(default_factory=PGRDailyItem)
+    activeData: Optional[PGRDailyItem] = Field(default_factory=PGRDailyItem)
+    bossData: Optional[List[PGRDailyItem]] = Field(default_factory=list)
     temporaryClose: Optional[bool] = False
 
 
 # ===== halfOfYear =====
 
-class PGRMonthResource(BaseModel):
+class PGRMonthResource(PGRBaseModel):
     """月度资源收入"""
     currentYear: Optional[int] = 0
     currentMonth: Optional[int] = 0
@@ -67,17 +80,17 @@ class PGRMonthResource(BaseModel):
     isHighest: Optional[bool] = False
 
 
-class PGRHalfYearData(BaseModel):
+class PGRHalfYearData(PGRBaseModel):
     """半年资源汇总"""
     totalBlackCard: Optional[int] = 0
     totalDevelopResource: Optional[int] = 0
     totalTradeCredit: Optional[int] = 0
-    perMonthList: List[PGRMonthResource] = Field(default_factory=list)
+    perMonthList: Optional[List[PGRMonthResource]] = Field(default_factory=list)
 
 
 # ===== roleIndex =====
 
-class PGRCharacter(BaseModel):
+class PGRCharacter(PGRBaseModel):
     """角色信息"""
     bodyId: Optional[int] = 0
     bodyName: Optional[str] = ""
@@ -93,7 +106,7 @@ class PGRCharacter(BaseModel):
     weaponType: Optional[int] = 0
 
 
-class PGRRoleIndexData(BaseModel):
+class PGRRoleIndexData(PGRBaseModel):
     """角色列表数据"""
     characterList: Optional[List[PGRCharacter]] = Field(default_factory=list)
     showRoleIdList: Optional[List[int]] = None
@@ -102,7 +115,7 @@ class PGRRoleIndexData(BaseModel):
 
 # ===== characterFashion =====
 
-class PGRFashionItem(BaseModel):
+class PGRFashionItem(PGRBaseModel):
     """涂装/皮肤"""
     skinId: Optional[int] = 0
     skinName: Optional[str] = ""
@@ -110,7 +123,7 @@ class PGRFashionItem(BaseModel):
     characterId: Optional[int] = 0
 
 
-class PGRFashionData(BaseModel):
+class PGRFashionData(PGRBaseModel):
     """涂装数据"""
     fashionList: Optional[List[PGRFashionItem]] = Field(default_factory=list)
     topFashionList: Optional[List[PGRFashionItem]] = Field(default_factory=list)
@@ -120,7 +133,7 @@ class PGRFashionData(BaseModel):
 
 # ===== weaponFashion =====
 
-class PGRWeaponFashionItem(BaseModel):
+class PGRWeaponFashionItem(PGRBaseModel):
     """武器涂装"""
     skinId: Optional[int] = 0
     skinName: Optional[str] = ""
@@ -128,7 +141,7 @@ class PGRWeaponFashionItem(BaseModel):
     equipType: Optional[int] = 0
 
 
-class PGRWeaponFashionData(BaseModel):
+class PGRWeaponFashionData(PGRBaseModel):
     """武器涂装数据"""
     fashionList: Optional[List[PGRWeaponFashionItem]] = Field(default_factory=list)
     topFashionList: Optional[List[PGRWeaponFashionItem]] = Field(default_factory=list)
@@ -138,18 +151,18 @@ class PGRWeaponFashionData(BaseModel):
 
 # ===== prisonerCage (幻痛囚笼) =====
 
-class PGRBossInfo(BaseModel):
+class PGRBossInfo(PGRBaseModel):
     name: Optional[str] = ""
     iconUrl: Optional[str] = ""
     bossId: Optional[int] = 0
 
 
-class PGRStageBody(BaseModel):
-    auto: bool = False
+class PGRStageBody(PGRBaseModel):
+    auto: Optional[bool] = False
     bodyInfo: Optional[Dict[str, Any]] = None
 
 
-class PGRStageInfo(BaseModel):
+class PGRStageInfo(PGRBaseModel):
     point: Optional[int] = 0
     autoFight: Optional[bool] = False
     fightTime: Optional[int] = 0
@@ -157,20 +170,20 @@ class PGRStageInfo(BaseModel):
     bodyList: Optional[List[PGRStageBody]] = Field(default_factory=list)
 
 
-class PGRBossFightInfo(BaseModel):
+class PGRBossFightInfo(PGRBaseModel):
     totalPoint: Optional[int] = 0
     totalNum: Optional[int] = 0
     boss: Optional[PGRBossInfo] = None
     stageInfoList: Optional[List[PGRStageInfo]] = Field(default_factory=list)
 
 
-class PGRPrisonerCageInfo(BaseModel):
+class PGRPrisonerCageInfo(PGRBaseModel):
     totalPoint: Optional[int] = 0
     totalChallengeTimes: Optional[int] = 0
     bossFightInfoList: Optional[List[PGRBossFightInfo]] = Field(default_factory=list)
 
 
-class PGRPrisonerCageData(BaseModel):
+class PGRPrisonerCageData(PGRBaseModel):
     """幻痛囚笼数据"""
     show: Optional[bool] = False
     isOpen: Optional[bool] = False
@@ -183,13 +196,13 @@ class PGRPrisonerCageData(BaseModel):
 
 # ===== area (纷争战区) =====
 
-class PGRAreaInfo(BaseModel):
+class PGRAreaInfo(PGRBaseModel):
     totalPoint: Optional[int] = 0
     totalChallengeTimes: Optional[int] = 0
     stageFightInfoList: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
 
 
-class PGRAreaData(BaseModel):
+class PGRAreaData(PGRBaseModel):
     """纷争战区数据"""
     show: Optional[bool] = False
     isOpen: Optional[bool] = False
@@ -201,7 +214,7 @@ class PGRAreaData(BaseModel):
 
 # ===== getChipOverclocking (芯片超频) =====
 
-class PGRChipSkill(BaseModel):
+class PGRChipSkill(PGRBaseModel):
     skillId: Optional[int] = 0
     skillDesc: Optional[str] = ""
     skillIcon: Optional[str] = ""
@@ -210,15 +223,15 @@ class PGRChipSkill(BaseModel):
     isRecommend: Optional[bool] = False
 
 
-class PGRChipOverclockingData(BaseModel):
+class PGRChipOverclockingData(PGRBaseModel):
     """芯片超频数据"""
-    userChipSkill: Dict[str, List[PGRChipSkill]] = Field(default_factory=dict)
-    notUserChipSkill: Dict[str, List[PGRChipSkill]] = Field(default_factory=dict)
+    userChipSkill: Optional[Dict[str, List[PGRChipSkill]]] = Field(default_factory=dict)
+    notUserChipSkill: Optional[Dict[str, List[PGRChipSkill]]] = Field(default_factory=dict)
 
 
 # ===== transfinite (历战映射) =====
 
-class PGRTransfiniteData(BaseModel):
+class PGRTransfiniteData(PGRBaseModel):
     """历战映射数据"""
     show: Optional[bool] = False
     isOpen: Optional[bool] = False
@@ -230,54 +243,55 @@ class PGRTransfiniteData(BaseModel):
     operatorCount: Optional[int] = 0
     process: Optional[int] = 0
     fightTime: Optional[int] = 0
-    characterList: List[PGRCharacter] = Field(default_factory=list)
+    characterList: Optional[List[PGRCharacter]] = Field(default_factory=list)
 
 
 # ===== stronghold (诺曼矿区) =====
 
-class PGRBuffInfo(BaseModel):
+class PGRBuffInfo(PGRBaseModel):
     name: Optional[str] = ""
     iconUrl: Optional[str] = ""
     buffId: Optional[int] = 0
 
 
-class PGRGroupBuff(BaseModel):
+class PGRGroupBuff(PGRBaseModel):
     groupId: Optional[str] = ""
     isComplete: Optional[bool] = False
     buff: Optional[PGRBuffInfo] = None
 
 
-class PGRStrongholdGroup(BaseModel):
+class PGRStrongholdGroup(PGRBaseModel):
     groupId: Optional[str] = ""
     groupName: Optional[str] = ""
     order: Optional[int] = 0
     isUnlock: Optional[bool] = False
     pass_: Optional[bool] = Field(default=False, alias="pass")
     completeBuffNum: Optional[int] = 0
-    buffList: List[PGRGroupBuff] = Field(default_factory=list)
+    buffList: Optional[List[PGRGroupBuff]] = Field(default_factory=list)
 
 
-class PGRStrongholdTeam(BaseModel):
+class PGRStrongholdTeam(PGRBaseModel):
     element: Optional[Dict[str, Any]] = None
     electricNum: Optional[int] = 0
     rune: Optional[Dict[str, Any]] = None
-    characterList: List[PGRCharacter] = Field(default_factory=list)
+    subRune: Optional[Dict[str, Any]] = None
+    characterList: Optional[List[PGRCharacter]] = Field(default_factory=list)
 
 
-class PGRStrongholdData(BaseModel):
+class PGRStrongholdData(PGRBaseModel):
     """诺曼矿区数据"""
     show: Optional[bool] = False
     isOpen: Optional[bool] = False
     isUnlock: Optional[bool] = False
     challengeArea: Optional[str] = ""
     challengeLevel: Optional[str] = ""
-    groupList: List[PGRStrongholdGroup] = Field(default_factory=list)
-    teamList: List[PGRStrongholdTeam] = Field(default_factory=list)
+    groupList: Optional[List[PGRStrongholdGroup]] = Field(default_factory=list)
+    teamList: Optional[List[PGRStrongholdTeam]] = Field(default_factory=list)
 
 
 # ===== roleDetail (角色详情) =====
 
-class PGRBodyInfo(BaseModel):
+class PGRBodyInfo(PGRBaseModel):
     """角色本体信息"""
     bodyId: Optional[int] = 0
     roleName: Optional[str] = ""
@@ -296,7 +310,7 @@ class PGRBodyInfo(BaseModel):
     weaponType: Optional[int] = 0
 
 
-class PGRWeaponDetail(BaseModel):
+class PGRWeaponDetail(PGRBaseModel):
     """武器信息"""
     name: Optional[str] = ""
     iconUrl: Optional[str] = ""
@@ -305,7 +319,7 @@ class PGRWeaponDetail(BaseModel):
     skillDescription: Optional[str] = ""
 
 
-class PGRSuitDetail(BaseModel):
+class PGRSuitDetail(PGRBaseModel):
     """意识套装"""
     name: Optional[str] = ""
     iconUrl: Optional[str] = ""
@@ -315,7 +329,7 @@ class PGRSuitDetail(BaseModel):
     skillDescriptionSix: Optional[str] = None
 
 
-class PGRResonance(BaseModel):
+class PGRResonance(PGRBaseModel):
     """武器共鸣"""
     name: Optional[str] = ""
     iconUrl: Optional[str] = ""
@@ -323,16 +337,16 @@ class PGRResonance(BaseModel):
     skillDescription: Optional[str] = ""
 
 
-class PGRWeaponInfo(BaseModel):
+class PGRWeaponInfo(PGRBaseModel):
     """武器完整信息"""
     weapon: Optional[PGRWeaponDetail] = None
     overRunLevel: Optional[int] = 0
     quality: Optional[int] = 0
     suit: Optional[PGRSuitDetail] = None
-    resonanceList: List[PGRResonance] = Field(default_factory=list)
+    resonanceList: Optional[List[PGRResonance]] = Field(default_factory=list)
 
 
-class PGRPartnerInfo(BaseModel):
+class PGRPartnerInfo(PGRBaseModel):
     """辅助机信息"""
     name: Optional[str] = ""
     iconUrl: Optional[str] = ""
@@ -341,7 +355,7 @@ class PGRPartnerInfo(BaseModel):
     gradeStr: Optional[str] = None
 
 
-class PGRPartnerSkill(BaseModel):
+class PGRPartnerSkill(PGRBaseModel):
     """辅助机技能"""
     name: Optional[str] = ""
     iconUrl: Optional[str] = ""
@@ -349,17 +363,17 @@ class PGRPartnerSkill(BaseModel):
     description: Optional[str] = ""
 
 
-class PGRPartner(BaseModel):
+class PGRPartner(PGRBaseModel):
     """辅助机完整信息"""
     partner: Optional[PGRPartnerInfo] = None
     level: Optional[int] = 0
     breakThrough: Optional[int] = 0
     grade: Optional[str] = ""
     quality: Optional[int] = 0
-    skillList: List[PGRPartnerSkill] = Field(default_factory=list)
+    skillList: Optional[List[PGRPartnerSkill]] = Field(default_factory=list)
 
 
-class PGRChipSuit(BaseModel):
+class PGRChipSuit(PGRBaseModel):
     """芯片套装"""
     name: Optional[str] = ""
     iconUrl: Optional[str] = ""
@@ -370,7 +384,7 @@ class PGRChipSuit(BaseModel):
     descriptionSix: Optional[str] = None
 
 
-class PGRChipResonance(BaseModel):
+class PGRChipResonance(PGRBaseModel):
     """芯片共鸣槽"""
     chipIconUrl: Optional[str] = ""
     site: Optional[int] = 0
@@ -384,7 +398,7 @@ class PGRChipResonance(BaseModel):
     subDescription: Optional[str] = ""
 
 
-class PGRCharacterDetail(BaseModel):
+class PGRCharacterDetail(PGRBaseModel):
     """角色详情（含装备）"""
     body: Optional[PGRBodyInfo] = None
     quality: Optional[int] = 0
@@ -392,12 +406,12 @@ class PGRCharacterDetail(BaseModel):
     fightAbility: Optional[int] = 0
     weaponInfo: Optional[PGRWeaponInfo] = None
     partner: Optional[PGRPartner] = None
-    chipSuitList: List[PGRChipSuit] = Field(default_factory=list)
-    chipResonanceList: List[PGRChipResonance] = Field(default_factory=list)
+    chipSuitList: Optional[List[PGRChipSuit]] = Field(default_factory=list)
+    chipResonanceList: Optional[List[PGRChipResonance]] = Field(default_factory=list)
     chipExDamage: Optional[str] = ""
 
 
-class PGRRoleDetailData(BaseModel):
+class PGRRoleDetailData(PGRBaseModel):
     """角色详情响应"""
     character: Optional[PGRCharacterDetail] = None
     show: Optional[bool] = False

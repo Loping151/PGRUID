@@ -6,6 +6,7 @@ from ..pgr_config import PREFIX
 from .draw_cage import draw_cage_img
 
 from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
+from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 sv_cage = SV("战双幻痛囚笼")
 
@@ -15,7 +16,7 @@ sv_cage = SV("战双幻痛囚笼")
     block=True,
 )
 async def pgr_cage(bot: Bot, ev: Event):
-    uid = await WavesBind.get_uid_by_game(ev.user_id, ev.bot_id, game_name="pgr")
+    uid = await WavesBind.get_uid_by_game(ruser_id(ev), ev.bot_id, game_name="pgr")
     if not uid:
         return await bot.send(
             f"[战双] 您还未绑定战双UID，请使用【{PREFIX}登录】完成绑定！"

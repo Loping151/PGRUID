@@ -9,6 +9,7 @@ from typing import Dict, Union
 
 from gsuid_core.logger import logger
 from gsuid_core.models import Event
+from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.path import ROLE_ICON_PATH
@@ -74,7 +75,7 @@ def _get_grade_info(grade: str) -> dict:
 async def draw_roleinfo_img(
     ev: Event, uid: str
 ) -> Union[bytes, str]:
-    user_id = ev.user_id
+    user_id = ruser_id(ev)
     bot_id = ev.bot_id
     ck = await pgr_api.get_self_pgr_ck(uid, user_id, bot_id)
     if not ck:
@@ -98,8 +99,12 @@ async def draw_roleinfo_img(
     await update_full_body(role_index)
 
     # 用户头像（从 QQ/平台获取，和 xwuid 一致）
-    from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
-    avatar_img = await get_event_avatar(ev, size=200)
+    from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
+    avatar_img = None
+    if ev.bot_id == "onebot":
+        avatar_img = await get_qq_avatar(user_id, size=640)
+    if avatar_img is None:
+        avatar_img = await get_event_avatar(ev, size=200)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # 本地素材 b64
@@ -124,7 +129,7 @@ async def draw_roleinfo_img(
     # 预加载本地元素图标 b64（去重）
     element_b64_cache: Dict[str, str] = {}
     all_elements = set()
-    for char in role_index.characterList:
+    for char in (role_index.characterList or []):
         for e in (char.element or "").split(","):
             e = e.strip()
             if e:
@@ -138,7 +143,7 @@ async def draw_roleinfo_img(
 
     # 角色列表（已按 fightAbility 降序排列）
     characters = []
-    for char in role_index.characterList:
+    for char in (role_index.characterList or []):
         icon_b64 = _local_icon_b64(ROLE_ICON_PATH, char.iconUrl, save_name=str(char.bodyId))
 
         quality = char.quality or 0

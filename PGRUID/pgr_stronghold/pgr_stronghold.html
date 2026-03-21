@@ -87,20 +87,27 @@
         border-radius: 4px;
         font-size: 20px;
     }
-    .mine-name { color: var(--text-dark); font-weight: bold; flex: 1; }
-    .mine-status { color: var(--clear-blue); font-size: 18px; font-weight: bold; margin-right: 10px; }
+    .mine-name { color: var(--text-dark); font-weight: bold; flex: 1; display: flex; align-items: center; gap: 8px; }
+    .mine-status { color: var(--clear-blue); font-size: 18px; font-weight: bold; }
     .status-icons { display: flex; gap: 6px; }
     .buff-dot {
-        width: 24px; height: 24px;
-        border-radius: 50%;
-        overflow: hidden;
+        position: relative;
+        width: 36px; height: 36px;
+        flex-shrink: 0;
     }
-    .buff-dot img { width: 100%; height: 100%; object-fit: cover; }
-    .buff-dot-empty {
-        width: 24px; height: 24px;
-        border-radius: 50%;
-        background: #ccc;
+    .buff-dot img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; filter: invert(1); }
+    .buff-complete-mark {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
     }
+    .mine-lock {
+        display: flex;
+        align-items: center;
+        margin-right: 10px;
+    }
+    .mine-lock svg { width: 26px; height: 26px; }
 
     /* Team Cards */
     .team-list { display: flex; flex-direction: column; gap: 18px; }
@@ -239,15 +246,24 @@
         <div class="mine-column">
             {% for g in groups[i:i + (groups|length + 1) // 2] %}
             <div class="mine-row">
-                <span class="mine-name">{{ g.groupName }}</span>
-                {% if g.pass %}<span class="mine-status">Clear</span>{% endif %}
+                <span class="mine-name">{{ g.groupName }}
+                    {% if not g.isUnlock %}
+                    <span class="mine-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#999" stroke-width="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#999" stroke-width="2" stroke-linecap="round"/></svg></span>
+                    {% elif g.pass %}
+                    <span class="mine-status">Clear</span>
+                    {% endif %}
+                </span>
                 <div class="status-icons">
                     {% for buff in g.buffs %}
-                    {% if buff.isComplete and buff.iconB64 %}
-                    <div class="buff-dot"><img src="{{ buff.iconB64 }}"></div>
-                    {% else %}
-                    <div class="buff-dot-empty"></div>
-                    {% endif %}
+                    <div class="buff-dot">
+                        {% if buff.iconB64 %}<img src="{{ buff.iconB64 }}">{% endif %}
+                        {% if buff.isComplete %}
+                        <svg class="buff-complete-mark" viewBox="0 0 36 36" fill="none">
+                            <circle cx="18" cy="18" r="16" stroke="#4caf50" stroke-width="2.5" fill="none"/>
+                            <line x1="7" y1="29" x2="29" y2="7" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+                        {% endif %}
+                    </div>
                     {% endfor %}
                 </div>
             </div>
@@ -274,8 +290,9 @@
                     </div>
                 </div>
                 <div class="rune-group">
+                    {{ team.runeName }}{% if team.subRuneName %}·{{ team.subRuneName }}{% endif %}
                     {% if team.runeIconB64 %}<img src="{{ team.runeIconB64 }}" class="rune-icon-sm">{% endif %}
-                    {{ team.runeName }}{% if team.subRuneName %}<span class="rune-dot">·</span>{{ team.subRuneName }}{% endif %}
+                    {% if team.subRuneIconB64 %}<img src="{{ team.subRuneIconB64 }}" class="rune-icon-sm">{% endif %}
                 </div>
             </div>
             <div class="team-avatars">
