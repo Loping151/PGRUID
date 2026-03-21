@@ -125,7 +125,7 @@ async def draw_roleinfo_img(
     element_b64_cache: Dict[str, str] = {}
     all_elements = set()
     for char in role_index.characterList:
-        for e in char.element.split(","):
+        for e in (char.element or "").split(","):
             e = e.strip()
             if e:
                 all_elements.add(e)
@@ -142,11 +142,11 @@ async def draw_roleinfo_img(
         icon_b64 = _local_icon_b64(ROLE_ICON_PATH, char.iconUrl, save_name=str(char.bodyId))
 
         quality = char.quality or 0
-        grade_info = _get_grade_info(char.grade)
+        grade_info = _get_grade_info(char.grade or "")
 
         # 解析元素列表
         elem_list = []
-        for e in char.element.split(","):
+        for e in (char.element or "").split(","):
             e = e.strip()
             if e:
                 elem_list.append({"name": e, "iconB64": element_b64_cache.get(e, "")})
@@ -156,19 +156,19 @@ async def draw_roleinfo_img(
 
         characters.append({
             "bodyId": char.bodyId,
-            "bodyName": char.bodyName,
+            "bodyName": char.bodyName or "",
             "iconB64": icon_b64,
             "elements": elem_list,
-            "effect": char.effect,
+            "effect": char.effect or "",
             "quality": quality,
             "qualityColor": QUALITY_COLORS.get(quality, "#888888"),
-            "grade": char.grade,
+            "grade": char.grade or "",
             "gradeClass": grade_info["gradeClass"],
             "gradeDisplay": grade_info["gradeDisplay"],
             "isPlus": grade_info["isPlus"],
             "fightAbility": char.fightAbility or 0,
             "level": char.level or 0,
-            "roleRank": char.roleRank,
+            "roleRank": char.roleRank or "",
         })
 
     context = {

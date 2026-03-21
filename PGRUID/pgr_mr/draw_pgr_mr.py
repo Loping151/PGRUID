@@ -109,7 +109,7 @@ async def _process_uid(uid: str, ev: Event) -> Optional[Dict]:
         logger.info(f"[战双][体力] UID {uid} account_data 无效: {type(account_data)}")
         return None
 
-    logger.info(f"[战双][体力] UID {uid} 数据获取成功: {account_data.roleName} Lv.{account_data.level}")
+    logger.info(f"[战双][体力] UID {uid} 数据获取成功: {account_data.roleName or ''} Lv.{account_data.level or 0}")
     return {
         "daily_data": daily_data,
         "account_data": account_data,
@@ -282,8 +282,8 @@ async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
     context = {
         "user_name": account.roleName or "指挥官",
         "uid": uid,
-        "level": account.level,
-        "rank": account.rank,
+        "level": account.level or 0,
+        "rank": account.rank or 0,
         "server_name": account.serverName or "",
         "avatar_url": head_b64,
         "avatar_frame_url": avatar_frame_b64,

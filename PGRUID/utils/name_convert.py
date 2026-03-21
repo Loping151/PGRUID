@@ -46,7 +46,7 @@ async def update_full_body(role_index) -> Dict[str, dict]:
             "element": char.element,
             "effect": char.effect,
             "quality": char.quality or 0,
-            "grade": char.grade,
+            "grade": char.grade or "",
             "fightAbility": char.fightAbility or 0,
             "level": char.level or 0,
             "roleRank": char.roleRank,

@@ -155,8 +155,8 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
         "areaIconB64": image_to_base64(IMGS_PATH / "chuanqi.png") if area_data.groupLevel == "80 - 120" else "",
         "groupName": area_data.groupName,
         "groupLevel": area_data.groupLevel,
-        "totalPoint": area.totalPoint,
-        "totalChallengeTimes": area.totalChallengeTimes,
+        "totalPoint": area.totalPoint or 0,
+        "totalChallengeTimes": area.totalChallengeTimes or 0,
         "zones": zones,
     }
 

@@ -75,10 +75,10 @@ async def draw_transfinite_img(ev, uid: str) -> Union[bytes, str]:
     # 角色列表
     characters = []
     for char in trans_data.characterList:
-        gi = _get_grade_info(char.grade)
+        gi = _get_grade_info(char.grade or "")
         characters.append({
-            "bodyName": char.bodyName,
-            "iconB64": _local_b64(ROLE_ICON_PATH, char.iconUrl),
+            "bodyName": char.bodyName or "",
+            "iconB64": _local_b64(ROLE_ICON_PATH, char.iconUrl or ""),
             "gradeClass": gi["gradeClass"],
             "gradeDisplay": gi["gradeDisplay"],
             "isPlus": gi["isPlus"],

@@ -153,7 +153,7 @@ async def pgr_refresh_all(bot: Bot, ev: Event):
                 _save_player_data(uid, char.bodyId, raw_data)
                 success += 1
         except Exception as e:
-            logger.warning(f"[PGR] 刷新 {char.bodyName} 失败: {e}")
+            logger.warning(f"[PGR] 刷新 {char.bodyName or ''} 失败: {e}")
 
         if i < total - 1:
             await asyncio.sleep(0.3)

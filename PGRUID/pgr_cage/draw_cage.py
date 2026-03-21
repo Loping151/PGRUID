@@ -162,8 +162,8 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
         "areaIconB64": image_to_base64(IMGS_PATH / "area-level4.png") if cage_data.challengeLevel == "80 - 120" else "",
         "challengeArea": cage_data.challengeArea,
         "challengeLevel": cage_data.challengeLevel,
-        "totalPoint": cage.totalPoint,
-        "totalChallengeTimes": cage.totalChallengeTimes,
+        "totalPoint": cage.totalPoint or 0,
+        "totalChallengeTimes": cage.totalChallengeTimes or 0,
         "bosses": bosses,
     }
 

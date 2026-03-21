@@ -305,10 +305,10 @@ async def draw_char_card(
             "iconB64": icon_b64,
             "imgB64": body_b64,
         },
-        "quality": char.quality,
-        "grade": char.grade,
-        "fightAbility": char.fightAbility,
-        "chipExDamage": char.chipExDamage,
+        "quality": char.quality or 0,
+        "grade": char.grade or "",
+        "fightAbility": char.fightAbility or 0,
+        "chipExDamage": char.chipExDamage or "",
         "weapon": {
             "name": char.weaponInfo.weapon.name if char.weaponInfo and char.weaponInfo.weapon else "",
             "iconB64": weapon_b64,
@@ -368,10 +368,10 @@ async def draw_char_card(
 
     # 品级渐变 class
     from ..pgr_roleinfo.draw_roleinfo import _get_grade_info
-    context["gradeInfo"] = _get_grade_info(char.grade)
+    context["gradeInfo"] = _get_grade_info(char.grade or "")
 
     # 星级
-    context["stars"] = "★" * char.quality
+    context["stars"] = "★" * (char.quality or 0)
 
     if not PLAYWRIGHT_AVAILABLE:
         if not WutheringWavesConfig.get_config("RemoteRenderEnable").data:
