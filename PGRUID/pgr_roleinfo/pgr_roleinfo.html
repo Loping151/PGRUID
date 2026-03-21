@@ -87,7 +87,7 @@
         gap: 12px;
     }
 
-    /* 头部第一行：名字 + 勋阶 */
+    /* 头部第一行：名字 + 勋阶/等级 */
     .header-row-top {
         display: flex;
         align-items: center;
@@ -379,8 +379,8 @@
             <div class="header-row-top">
                 <div class="header-name">{{ account.roleName }}</div>
                 <div class="header-level">
-                    <span class="level-label">勋阶</span>
-                    <span class="level-val">{{ account.rank }}</span>
+                    <span class="level-label">{{ account.rank_label }}</span>
+                    <span class="level-val">{{ account.rank_val }}</span>
                 </div>
             </div>
             <div class="header-row-bottom">

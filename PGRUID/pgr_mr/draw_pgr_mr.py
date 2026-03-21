@@ -289,6 +289,8 @@ async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
         "uid": uid,
         "level": account.level or 0,
         "rank": account.rank or 0,
+        "rank_label": "勋阶" if account.rank else "等级",
+        "rank_val": account.rank if account.rank else (account.level or 0),
         "server_name": account.serverName or "",
         "avatar_url": head_b64,
         "avatar_frame_url": avatar_frame_b64,

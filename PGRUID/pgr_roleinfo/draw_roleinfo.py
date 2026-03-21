@@ -184,6 +184,8 @@ async def draw_roleinfo_img(
             "serverName": account.serverName,
             "headB64": head_b64,
             "rank": account.rank,
+            "rank_label": "勋阶" if account.rank else "等级",
+            "rank_val": account.rank if account.rank else account.level,
         },
         "stats": stats,
         "characters": characters,

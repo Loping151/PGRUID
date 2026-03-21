@@ -158,6 +158,8 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
             "roleName": account.roleName if account else uid,
             "serverName": account.serverName if account else "",
             "rank": account.rank if account else 0,
+            "rank_label": "勋阶" if (account and account.rank) else "等级",
+            "rank_val": account.rank if (account and account.rank) else (account.level if account else 0),
             "headB64": head_b64,
         },
         "headerBgB64": image_to_base64(IMGS_PATH / "head.png"),
