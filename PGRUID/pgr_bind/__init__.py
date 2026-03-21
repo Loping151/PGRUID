@@ -12,7 +12,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind,
 from XutheringWavesUID.XutheringWavesUID.utils.constants import PGR_GAME_ID, WAVES_GAME_ID
 from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.deal import add_cookie, get_cookie
 from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.login_succ import login_success_msg
-from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import PREFIX as XW_PREFIX
+from gsuid_core.sv import get_plugin_available_prefix
 
 pgr_bind_uid = SV("战双绑定UID", priority=10)
 pgr_login = SV("战双登录")
@@ -32,9 +32,10 @@ async def _send_text(bot: Bot, ev: Event, msg: str):
 
 @pgr_login.on_command(("登录", "登陆", "登入", "login", "dl"), block=True)
 async def pgr_login_msg(bot: Bot, ev: Event):
+    xw_prefix = get_plugin_available_prefix("XutheringWavesUID")
     return await _send_text(
         bot, ev,
-        f"[战双] 库洛账号通用，请使用【{XW_PREFIX}登录】进行登录\n"
+        f"[战双] 库洛账号通用，请使用【{xw_prefix}登录】进行登录\n"
         f"登录后战双UID将自动绑定\n"
         f"也可使用【{PREFIX}添加token xxx】直接绑定"
     )
