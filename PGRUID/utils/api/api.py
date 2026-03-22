@@ -7,6 +7,9 @@ ANN_LIST_URL = f"{MAIN_URL}/forum/companyEvent/findEventList"
 ANN_CONTENT_URL = f"{MAIN_URL}/forum/getPostDetail"
 BBS_LIST = f"{MAIN_URL}/forum/getMinePost"
 
+# 通用接口
+ROLE_LIST_URL = f"{MAIN_URL}/gamer/role/list"
+
 # 战双游戏数据接口
 REFRESH_DATA_URL = f"{MAIN_URL}/haru/roleBox/refreshData"
 ACCOUNT_DATA_URL = f"{MAIN_URL}/haru/roleBox/accountData"

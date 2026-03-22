@@ -122,11 +122,8 @@ async def draw_mr_img(bot: Bot, ev: Event):
         if not valid_list:
             return "未获取到有效数据，请检查登录状态"
 
-        images = []
-        for valid in valid_list:
-            img = await _draw_single_mr(ev, valid)
-            if img:
-                images.append(img)
+        draw_tasks = [_draw_single_mr(ev, valid) for valid in valid_list]
+        images = [img for img in await asyncio.gather(*draw_tasks) if img]
 
         if not images:
             return "体力卡片渲染失败"

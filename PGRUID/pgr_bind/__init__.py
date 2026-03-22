@@ -5,7 +5,6 @@ from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 
 from ..pgr_config import PREFIX
-from ..utils.api.requests import pgr_api
 
 # 直接复用 xwuid 的数据库和登录
 from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
@@ -169,6 +168,8 @@ async def pgr_add_token(bot: Bot, ev: Event):
 
 @pgr_get_token.on_fullmatch(("获取ck", "获取CK", "获取Token", "获取token", "获取TOKEN"), block=True)
 async def pgr_get_token_msg(bot: Bot, ev: Event):
+    from ..utils.api.requests import pgr_api
+
     uid_list = await WavesBind.get_uid_list_by_game(ev.user_id, ev.bot_id, game_name="pgr")
     if uid_list is None:
         return await bot.send("[战双] 尚未绑定任何UID\n")
