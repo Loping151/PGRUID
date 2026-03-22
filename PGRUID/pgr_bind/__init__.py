@@ -1,13 +1,16 @@
+from typing import List, Union
+
 from gsuid_core.sv import SV
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 
 from ..pgr_config import PREFIX
+from ..utils.api.requests import pgr_api
 
 # 直接复用 xwuid 的数据库和登录
 from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
 from XutheringWavesUID.XutheringWavesUID.utils.constants import PGR_GAME_ID, WAVES_GAME_ID
-from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.deal import add_cookie, get_cookie
+from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.deal import add_cookie
 from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.login_succ import login_success_msg
 from gsuid_core.sv import get_plugin_available_prefix
 
@@ -166,4 +169,29 @@ async def pgr_add_token(bot: Bot, ev: Event):
 
 @pgr_get_token.on_fullmatch(("获取ck", "获取CK", "获取Token", "获取token", "获取TOKEN"), block=True)
 async def pgr_get_token_msg(bot: Bot, ev: Event):
-    await bot.send(await get_cookie(bot, ev))
+    uid_list = await WavesBind.get_uid_list_by_game(ev.user_id, ev.bot_id, game_name="pgr")
+    if uid_list is None:
+        return await bot.send("[战双] 尚未绑定任何UID\n")
+
+    msg: List[str] = []
+    for uid in uid_list:
+        if not (uid and uid.isdigit()):
+            continue
+        waves_user = await WavesUser.select_waves_user(
+            uid, ev.user_id, ev.bot_id, game_id=PGR_GAME_ID
+        )
+        if not waves_user:
+            continue
+
+        ck = await pgr_api.get_self_pgr_ck(uid, ev.user_id, ev.bot_id)
+        if not ck:
+            continue
+        msg.append(f"战双uid: {uid} 的 token 和 did")
+        msg.append(f"添加token {waves_user.cookie}, {waves_user.did}")
+        msg.append("--------------------------------")
+
+    if not msg:
+        return await bot.send("您当前未绑定token或者token已全部失效\n")
+
+    msg.append("直接复制并加上前缀即可用于token登录")
+    await bot.send(msg)

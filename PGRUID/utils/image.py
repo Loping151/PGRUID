@@ -35,6 +35,10 @@ async def pic_download_from_url(
 
         await download(pic_url, path, name, tag="[PGR]")
 
+    # 并发时另一个任务可能已将 png 转为 webp 并删除原文件，再次检查
+    if webp_path.exists():
+        return Image.open(webp_path).convert("RGBA")
+
     try:
         img = Image.open(_path).convert("RGBA")
     except Exception as e:
