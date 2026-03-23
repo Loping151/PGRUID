@@ -24,6 +24,10 @@ ROLE_ICON_PATH = RESOURCE_PATH / "role_icon"
 ROLE_PILE_PATH = RESOURCE_PATH / "role_pile"
 FASHION_PATH = RESOURCE_PATH / "fashion"
 WEAPON_FASHION_PATH = RESOURCE_PATH / "weapon_fashion"
+WEAPON_PATH = RESOURCE_PATH / "weapon"
+PARTNER_PATH = RESOURCE_PATH / "partner"
+CHIP_PATH = RESOURCE_PATH / "chip"
+GAMEMODE_PATH = RESOURCE_PATH / "gamemode"
 
 # 数据映射
 FULL_BODY_PATH = MAIN_PATH / "full_body.json"
@@ -50,6 +54,10 @@ def init_dir():
         ROLE_PILE_PATH,
         FASHION_PATH,
         WEAPON_FASHION_PATH,
+        WEAPON_PATH,
+        PARTNER_PATH,
+        CHIP_PATH,
+        GAMEMODE_PATH,
         ALIAS_PATH,
         OTHER_PATH,
     ]:

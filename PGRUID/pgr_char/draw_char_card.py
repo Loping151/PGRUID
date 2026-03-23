@@ -14,8 +14,9 @@ from ..utils.image import pic_download_from_url
 from ..utils.path import (
     ROLE_ICON_PATH,
     ROLE_PILE_PATH,
-    FASHION_PATH,
-    WEAPON_FASHION_PATH,
+    WEAPON_PATH,
+    PARTNER_PATH,
+    CHIP_PATH,
     PLAYER_PATH,
 )
 from jinja2 import Environment, FileSystemLoader
@@ -64,35 +65,35 @@ async def _download_all_urls(detail_data: dict):
     if weapon_info:
         weapon = weapon_info.get("weapon") or {}
         if weapon and weapon.get("iconUrl"):
-            tasks.append(_download_url(WEAPON_FASHION_PATH, weapon["iconUrl"]))
+            tasks.append(_download_url(WEAPON_PATH, weapon["iconUrl"]))
         suit = weapon_info.get("suit") or {}
         if suit and suit.get("iconUrl"):
-            tasks.append(_download_url(WEAPON_FASHION_PATH, suit["iconUrl"]))
+            tasks.append(_download_url(WEAPON_PATH, suit["iconUrl"]))
         for res in (weapon_info.get("resonanceList") or []):
             if res.get("iconUrl"):
-                tasks.append(_download_url(WEAPON_FASHION_PATH, res["iconUrl"]))
+                tasks.append(_download_url(WEAPON_PATH, res["iconUrl"]))
 
     # 辅助机
     partner = char.get("partner") or {}
     if partner:
         p = partner.get("partner") or {}
         if p and p.get("iconUrl"):
-            tasks.append(_download_url(FASHION_PATH, p["iconUrl"]))
+            tasks.append(_download_url(PARTNER_PATH, p["iconUrl"]))
         for skill in (partner.get("skillList") or []):
             if skill.get("iconUrl"):
-                tasks.append(_download_url(FASHION_PATH, skill["iconUrl"]))
+                tasks.append(_download_url(PARTNER_PATH, skill["iconUrl"]))
 
     # 芯片套装
     for chip_suit in (char.get("chipSuitList") or []):
         if chip_suit.get("iconUrl"):
-            tasks.append(_download_url(FASHION_PATH, chip_suit["iconUrl"]))
+            tasks.append(_download_url(CHIP_PATH, chip_suit["iconUrl"]))
 
     # 芯片共鸣
     for chip_res in (char.get("chipResonanceList") or []):
         for key in ("chipIconUrl", "superSlotIconUrl", "subSlotIconUrl"):
             url = chip_res.get(key)
             if url:
-                tasks.append(_download_url(FASHION_PATH, url))
+                tasks.append(_download_url(CHIP_PATH, url))
 
     if tasks:
         await asyncio.gather(*tasks)
@@ -158,6 +159,10 @@ async def draw_char_card(
     body_name = get_body_name_by_id(body_id)
     raw_data = None
 
+    _is_self, ck = await pgr_api.get_ck_result(uid, user_id, bot_id)
+    if not ck:
+        return f"[战双] token 已失效，请使用【{PREFIX}登录】重新绑定！"
+
     if use_cache:
         # 优先从本地缓存读取
         raw_data = _load_player_data(uid, body_id)
@@ -165,16 +170,8 @@ async def draw_char_card(
             return f"[战双] 未找到「{body_name}」的面板数据，请先使用【{PREFIX}刷新{body_name}面板】"
 
     if not raw_data:
-        # 实时请求
-        _is_self, ck = await pgr_api.get_ck_result(uid, user_id, bot_id)
-        if not ck:
-            return f"[战双] token 已失效，请使用【{PREFIX}登录】重新绑定！"
-
-        import asyncio
-        detail, account_data = await asyncio.gather(
-            pgr_api.get_role_detail(uid, ck, body_id),
-            pgr_api.get_account_data(uid, ck),
-        )
+        # 实时请求角色详情
+        detail = await pgr_api.get_role_detail(uid, ck, body_id)
 
         if not detail or not detail.character:
             return f"[战双] 获取「{body_name}」面板失败，请检查库街区数据是否公开"
@@ -183,15 +180,8 @@ async def draw_char_card(
         await _download_all_urls(raw_data)
         _save_player_data(uid, body_id, raw_data)
 
-        # 把 account 也缓存一份
-        if account_data:
-            account_path = PLAYER_PATH / uid / "_account.json"
-            account_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(account_path, "w", encoding="utf-8") as f:
-                json.dump(account_data.model_dump(), f, ensure_ascii=False, indent=2)
-
     # 从 raw_data 重建 model
-    from ..utils.api.model import PGRRoleDetailData, PGRAccountData
+    from ..utils.api.model import PGRRoleDetailData
     detail = PGRRoleDetailData.model_validate(raw_data)
     if not detail.character:
         return f"[战双] 「{body_name}」面板数据异常"
@@ -199,18 +189,8 @@ async def draw_char_card(
     char = detail.character
     body = char.body
 
-    # 账号信息（优先从刚请求的，否则从缓存读）
-    account = None
-    if not use_cache:
-        account = account_data  # noqa: F821
-    if not account:
-        account_cache = PLAYER_PATH / uid / "_account.json"
-        if account_cache.exists():
-            try:
-                with open(account_cache, "r", encoding="utf-8") as f:
-                    account = PGRAccountData.model_validate(json.load(f))
-            except Exception:
-                pass
+    # 账号信息（始终从 API 获取）
+    account = await pgr_api.get_account_data(uid, ck)
 
     # 用户头像
     from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
@@ -232,13 +212,13 @@ async def draw_char_card(
     resonance_b64s = []
     if char.weaponInfo:
         if char.weaponInfo.weapon:
-            weapon_b64 = _local_b64(WEAPON_FASHION_PATH, char.weaponInfo.weapon.iconUrl)
+            weapon_b64 = _local_b64(WEAPON_PATH, char.weaponInfo.weapon.iconUrl)
         if char.weaponInfo.suit:
-            suit_b64 = _local_b64(WEAPON_FASHION_PATH, char.weaponInfo.suit.iconUrl)
+            suit_b64 = _local_b64(WEAPON_PATH, char.weaponInfo.suit.iconUrl)
         for res in (char.weaponInfo.resonanceList or []):
             resonance_b64s.append({
                 "name": res.name,
-                "iconB64": _local_b64(WEAPON_FASHION_PATH, res.iconUrl),
+                "iconB64": _local_b64(WEAPON_PATH, res.iconUrl),
                 "description": res.skillDescription,
             })
 
@@ -247,11 +227,11 @@ async def draw_char_card(
     partner_skills = []
     if char.partner:
         if char.partner.partner:
-            partner_b64 = _local_b64(FASHION_PATH, char.partner.partner.iconUrl)
+            partner_b64 = _local_b64(PARTNER_PATH, char.partner.partner.iconUrl)
         for skill in (char.partner.skillList or []):
             partner_skills.append({
                 "name": skill.name,
-                "iconB64": _local_b64(FASHION_PATH, skill.iconUrl),
+                "iconB64": _local_b64(PARTNER_PATH, skill.iconUrl),
                 "level": skill.level,
                 "description": skill.description,
             })
@@ -261,7 +241,7 @@ async def draw_char_card(
     for cs in (char.chipSuitList or []):
         chip_suits.append({
             "name": cs.name,
-            "iconB64": _local_b64(FASHION_PATH, cs.iconUrl),
+            "iconB64": _local_b64(CHIP_PATH, cs.iconUrl),
             "num": cs.num,
             "desc2": cs.descriptionTwo,
             "desc4": cs.descriptionFour,
@@ -274,12 +254,12 @@ async def draw_char_card(
         chip_resonances.append({
             "site": cr.site,
             "chipName": cr.chipName,
-            "chipIconB64": _local_b64(FASHION_PATH, cr.chipIconUrl),
+            "chipIconB64": _local_b64(CHIP_PATH, cr.chipIconUrl),
             "defend": cr.defend,
-            "superIconB64": _local_b64(FASHION_PATH, cr.superSlotIconUrl),
+            "superIconB64": _local_b64(CHIP_PATH, cr.superSlotIconUrl),
             "superAwake": cr.superAwake,
             "superDesc": cr.superDescription,
-            "subIconB64": _local_b64(FASHION_PATH, cr.subSlotIconUrl),
+            "subIconB64": _local_b64(CHIP_PATH, cr.subSlotIconUrl),
             "subAwake": cr.subAwake,
             "subDesc": cr.subDescription,
         })

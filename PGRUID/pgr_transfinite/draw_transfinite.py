@@ -8,7 +8,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.image import pic_download_from_url
-from ..utils.path import ROLE_ICON_PATH, FASHION_PATH
+from ..utils.path import ROLE_ICON_PATH, GAMEMODE_PATH
 from ..pgr_config import PREFIX
 from ..pgr_roleinfo.draw_roleinfo import _get_grade_info
 
@@ -60,7 +60,7 @@ async def draw_transfinite_img(ev, uid: str) -> Union[bytes, str]:
     # 下载 boss 图标 + 角色图标
     download_tasks = []
     if trans_data.bossIconUrl:
-        download_tasks.append(pic_download_from_url(FASHION_PATH, trans_data.bossIconUrl))
+        download_tasks.append(pic_download_from_url(GAMEMODE_PATH, trans_data.bossIconUrl))
     for char in (trans_data.characterList or []):
         if char.iconUrl:
             download_tasks.append(pic_download_from_url(ROLE_ICON_PATH, char.iconUrl))
@@ -76,7 +76,7 @@ async def draw_transfinite_img(ev, uid: str) -> Union[bytes, str]:
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # Boss 图标
-    boss_icon_b64 = _local_b64(FASHION_PATH, trans_data.bossIconUrl)
+    boss_icon_b64 = _local_b64(GAMEMODE_PATH, trans_data.bossIconUrl)
 
     # 角色列表
     characters = []

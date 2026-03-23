@@ -9,7 +9,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.image import pic_download_from_url
-from ..utils.path import ROLE_ICON_PATH, FASHION_PATH
+from ..utils.path import ROLE_ICON_PATH, GAMEMODE_PATH
 from ..pgr_config import PREFIX
 
 from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
@@ -25,7 +25,7 @@ IMGS_PATH = Path(__file__).parent / "imgs"
 # Boss 图标缓存目录
 from ..pgr_roleinfo.draw_roleinfo import _get_grade_info
 
-BOSS_ICON_PATH = FASHION_PATH
+BOSS_ICON_PATH = GAMEMODE_PATH
 
 
 def _local_b64(cache_dir: Path, url: str) -> str:
@@ -81,7 +81,7 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
             download_tasks.append(_download(BOSS_ICON_PATH, boss["iconUrl"]))
         for weakness in (boss.get("weaknessList") or []):
             if weakness.get("icon"):
-                download_tasks.append(_download(FASHION_PATH, weakness["icon"]))
+                download_tasks.append(_download(GAMEMODE_PATH, weakness["icon"]))
         for stage in (boss_fight.get("stageInfoList") or []):
             for body_item in (stage.get("bodyList") or []):
                 body_info = (body_item.get("bodyInfo") or {})
@@ -96,7 +96,7 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
         download_tasks.append(_download(BOSS_ICON_PATH, fhz_boss["iconUrl"]))
     for weakness in (fhz_boss.get("weaknessList") or []):
         if weakness.get("icon"):
-            download_tasks.append(_download(FASHION_PATH, weakness["icon"]))
+            download_tasks.append(_download(GAMEMODE_PATH, weakness["icon"]))
     for buff_entry in (fhz.get("buffList") or []):
         for body_item in (buff_entry.get("bodyList") or []):
             body_info = (body_item.get("bodyInfo") or {})
@@ -126,7 +126,7 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
         for w in (boss.get("weaknessList") or []):
             weaknesses.append({
                 "name": w.get("name", ""),
-                "iconB64": _local_b64(FASHION_PATH, w.get("icon", "")),
+                "iconB64": _local_b64(GAMEMODE_PATH, w.get("icon", "")),
             })
 
         # 关卡（骑士/勇士/指挥官等）
@@ -175,7 +175,7 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
         for w in (fhz_boss.get("weaknessList") or []):
             fhz_weaknesses.append({
                 "name": w.get("name", ""),
-                "iconB64": _local_b64(FASHION_PATH, w.get("icon", "")),
+                "iconB64": _local_b64(GAMEMODE_PATH, w.get("icon", "")),
             })
 
         fhz_stages = []

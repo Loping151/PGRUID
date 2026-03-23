@@ -8,7 +8,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.image import pic_download_from_url
-from ..utils.path import ROLE_ICON_PATH, FASHION_PATH
+from ..utils.path import ROLE_ICON_PATH, GAMEMODE_PATH
 from ..pgr_config import PREFIX
 from ..pgr_roleinfo.draw_roleinfo import _get_grade_info
 
@@ -73,13 +73,13 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
     download_tasks = []
     for stage in (ai.get("stageFightInfoList") or []):
         if stage.get("stageIconUrl"):
-            download_tasks.append(_download(FASHION_PATH, stage["stageIconUrl"]))
+            download_tasks.append(_download(GAMEMODE_PATH, stage["stageIconUrl"]))
         for buff_fight in (stage.get("areaBuffFightInfoList") or []):
             if buff_fight.get("buffIconUrl"):
-                download_tasks.append(_download(FASHION_PATH, buff_fight["buffIconUrl"]))
+                download_tasks.append(_download(GAMEMODE_PATH, buff_fight["buffIconUrl"]))
             for sb in (buff_fight.get("supportBuffList") or []):
                 if sb.get("iconUrl"):
-                    download_tasks.append(_download(FASHION_PATH, sb["iconUrl"]))
+                    download_tasks.append(_download(GAMEMODE_PATH, sb["iconUrl"]))
             for body_item in (buff_fight.get("bodyList") or []):
                 body = (body_item.get("bodyInfo") or {}).get("body", {})
                 if body.get("iconUrl"):
@@ -98,7 +98,7 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
     # 构建战区列表
     zones = []
     for stage in (ai.get("stageFightInfoList") or []):
-        stage_icon_b64 = _local_b64(FASHION_PATH, stage.get("stageIconUrl", ""))
+        stage_icon_b64 = _local_b64(GAMEMODE_PATH, stage.get("stageIconUrl", ""))
 
         # 每个 buff 关卡
         buff_fights = []
@@ -108,7 +108,7 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
             for sb in (bf.get("supportBuffList") or []):
                 support_buffs.append({
                     "name": sb.get("name", ""),
-                    "iconB64": _local_b64(FASHION_PATH, sb.get("iconUrl", "")),
+                    "iconB64": _local_b64(GAMEMODE_PATH, sb.get("iconUrl", "")),
                 })
 
             # 编队
@@ -128,7 +128,7 @@ async def draw_area_img(ev, uid: str) -> Union[bytes, str]:
 
             buff_fights.append({
                 "buffName": bf.get("buffName", ""),
-                "buffIconB64": _local_b64(FASHION_PATH, bf.get("buffIconUrl", "")),
+                "buffIconB64": _local_b64(GAMEMODE_PATH, bf.get("buffIconUrl", "")),
                 "point": bf.get("point", 0),
                 "fightTime": bf.get("fightTime", 0),
                 "npcGroup": bf.get("npcGroup", 0),

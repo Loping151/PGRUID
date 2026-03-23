@@ -8,7 +8,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.image import pic_download_from_url
-from ..utils.path import ROLE_ICON_PATH, FASHION_PATH
+from ..utils.path import ROLE_ICON_PATH, GAMEMODE_PATH
 from ..pgr_config import PREFIX
 from ..pgr_roleinfo.draw_roleinfo import _get_grade_info
 
@@ -72,13 +72,13 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
     for team in (raw.get("teamList") or []):
         elem = team.get("element") or {}
         if elem.get("iconUrl"):
-            download_tasks.append(_download(FASHION_PATH, elem["iconUrl"]))
+            download_tasks.append(_download(GAMEMODE_PATH, elem["iconUrl"]))
         rune = team.get("rune") or {}
         if rune.get("iconUrl"):
-            download_tasks.append(_download(FASHION_PATH, rune["iconUrl"]))
+            download_tasks.append(_download(GAMEMODE_PATH, rune["iconUrl"]))
         sub_rune = team.get("subRune") or {}
         if sub_rune.get("iconUrl"):
-            download_tasks.append(_download(FASHION_PATH, sub_rune["iconUrl"]))
+            download_tasks.append(_download(GAMEMODE_PATH, sub_rune["iconUrl"]))
         for char in (team.get("characterList") or []):
             if char.get("iconUrl"):
                 download_tasks.append(_download(ROLE_ICON_PATH, char["iconUrl"]))
@@ -87,7 +87,7 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
         for bl in (group.get("buffList") or []):
             buff = bl.get("buff") or {}
             if buff.get("iconUrl"):
-                download_tasks.append(_download(FASHION_PATH, buff["iconUrl"]))
+                download_tasks.append(_download(GAMEMODE_PATH, buff["iconUrl"]))
 
     if download_tasks:
         await asyncio.gather(*download_tasks, return_exceptions=True)
@@ -108,7 +108,7 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
             buff = bl.get("buff") or {}
             buffs.append({
                 "name": buff.get("name", ""),
-                "iconB64": _local_b64(FASHION_PATH, buff.get("iconUrl", "")),
+                "iconB64": _local_b64(GAMEMODE_PATH, buff.get("iconUrl", "")),
                 "isComplete": bl.get("isComplete", False),
             })
         groups.append({
@@ -142,12 +142,12 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
 
         teams.append({
             "elementName": elem.get("name", ""),
-            "elementIconB64": _local_b64(FASHION_PATH, elem.get("iconUrl", "")),
+            "elementIconB64": _local_b64(GAMEMODE_PATH, elem.get("iconUrl", "")),
             "electricNum": team.get("electricNum", 0),
             "runeName": rune.get("name", ""),
-            "runeIconB64": _local_b64(FASHION_PATH, rune.get("iconUrl", "")),
+            "runeIconB64": _local_b64(GAMEMODE_PATH, rune.get("iconUrl", "")),
             "subRuneName": sub_rune.get("name", ""),
-            "subRuneIconB64": _local_b64(FASHION_PATH, sub_rune.get("iconUrl", "")),
+            "subRuneIconB64": _local_b64(GAMEMODE_PATH, sub_rune.get("iconUrl", "")),
             "characters": chars,
         })
 
