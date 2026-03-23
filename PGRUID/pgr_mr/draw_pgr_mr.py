@@ -71,15 +71,15 @@ async def _process_uid(uid: str, ev: Event) -> Optional[Dict]:
         return None
     if isinstance(account_data, Exception):
         logger.warning(f"[战双][体力] UID {uid} get_account_data 异常: {account_data}")
-        return None
+        account_data = None
     if not isinstance(daily_data, PGRDailyData):
         logger.info(f"[战双][体力] UID {uid} daily_data 无效: {type(daily_data)}")
         return None
     if not isinstance(account_data, PGRAccountData):
-        logger.info(f"[战双][体力] UID {uid} account_data 无效: {type(account_data)}")
-        return None
+        logger.info(f"[战双][体力] UID {uid} account_data 为空，使用默认值")
+        account_data = None
 
-    logger.info(f"[战双][体力] UID {uid} 数据获取成功: {account_data.roleName or ''} Lv.{account_data.level or 0}")
+    logger.info(f"[战双][体力] UID {uid} 数据获取成功: {(account_data.roleName if account_data else '') or ''} Lv.{(account_data.level if account_data else 0) or 0}")
     return {
         "daily_data": daily_data,
         "account_data": account_data,
@@ -148,7 +148,7 @@ async def draw_mr_img(bot: Bot, ev: Event):
 async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
     """绘制单个 UID 的体力卡片"""
     daily: PGRDailyData = valid["daily_data"]
-    account: PGRAccountData = valid["account_data"]
+    account: Optional[PGRAccountData] = valid.get("account_data")
     uid: str = valid["uid"]
 
     # 用户头像（和卡片一致，QQ头像 size=200）
@@ -252,13 +252,13 @@ async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
         })
 
     context = {
-        "user_name": account.roleName or "指挥官",
+        "user_name": (account.roleName if account else None) or "暂无",
         "uid": uid,
-        "level": account.level or 0,
-        "rank": account.rank or 0,
-        "rank_label": "勋阶" if account.rank else "等级",
-        "rank_val": account.rank if account.rank else (account.level or 0),
-        "server_name": account.serverName or "",
+        "level": (account.level if account else None) or 0,
+        "rank": (account.rank if account else None) or 0,
+        "rank_label": "勋阶" if account and account.rank else "等级",
+        "rank_val": (account.rank if account and account.rank else None) or (account.level if account else None) or 0,
+        "server_name": (account.serverName if account else None) or "暂无",
         "avatar_url": head_b64,
         "avatar_frame_url": avatar_frame_b64,
         "header_bg_url": header_bg_b64,
