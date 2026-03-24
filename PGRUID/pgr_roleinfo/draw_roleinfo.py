@@ -89,8 +89,6 @@ async def draw_roleinfo_img(
         pgr_api.get_role_index(uid, ck),
     )
 
-    if not account:
-        return "[战双] 获取账号信息失败，请检查库街区数据是否公开"
     if not base:
         return "[战双] 获取基础信息失败"
     if not role_index:
@@ -179,14 +177,14 @@ async def draw_roleinfo_img(
 
     context = {
         "account": {
-            "roleId": account.roleId,
-            "level": account.level,
-            "roleName": account.roleName,
-            "serverName": account.serverName,
+            "roleId": account.roleId if account else uid,
+            "level": account.level if account else 0,
+            "roleName": (account.roleName if account else None) or "暂无",
+            "serverName": (account.serverName if account else None) or "暂无",
             "headB64": head_b64,
-            "rank": account.rank,
-            "rank_label": "勋阶" if account.rank else "等级",
-            "rank_val": account.rank if account.rank else account.level,
+            "rank": account.rank if account else 0,
+            "rank_label": "勋阶" if (account and account.rank) else "等级",
+            "rank_val": account.rank if (account and account.rank) else (account.level if account else 0),
         },
         "stats": stats,
         "characters": characters,

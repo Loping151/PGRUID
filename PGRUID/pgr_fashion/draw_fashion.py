@@ -100,8 +100,8 @@ async def draw_fashion_img(ev, uid: str) -> Union[bytes, str]:
         "account": {
             "roleId": account.roleId if account else uid,
             "level": account.level if account else 0,
-            "roleName": account.roleName if account else uid,
-            "serverName": account.serverName if account else "",
+            "roleName": (account.roleName if account else None) or "暂无",
+            "serverName": (account.serverName if account else None) or "暂无",
             "rank": account.rank if account else 0,
             "rank_label": "勋阶" if (account and account.rank) else "等级",
             "rank_val": account.rank if (account and account.rank) else (account.level if account else 0),
