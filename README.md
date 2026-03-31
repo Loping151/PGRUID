@@ -23,7 +23,7 @@ git clone https://github.com/Loping151/PGRUID
 
 库洛账号通用，使用鸣潮插件登录后战双UID自动绑定。也可单独使用 `pgr登录` 进行登录。
 
-催更/反馈/Bug/建议：与 [XWUID](https://github.com/Loping151/XutheringWavesUID) 首页的同一个群吧，不想再建群了。Issue亦会看。
+催更/反馈/Bug/建议：与 [XWUID](https://github.com/Loping151/XutheringWavesUID) 首页的同一个群吧，不想再建群了。Issue亦会看。如果库街区出了新的战双查询项目，并且你希望通过PGRUID查看，请告诉我。
 
 ## 丨其他
 
