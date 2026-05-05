@@ -27,6 +27,11 @@ CONFIG_DEFAULT: Dict[str, GSC] = {
         42,
         3650,
     ),
+    "HideUid": GsBoolConfig(
+        "隐藏uid",
+        "开启后，所有渲染卡片中显示的UID将以 前2位 + **** + 后2位 的形式显示",
+        False,
+    ),
 }
 
 

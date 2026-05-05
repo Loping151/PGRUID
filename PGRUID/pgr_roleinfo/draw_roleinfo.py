@@ -13,6 +13,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.path import ROLE_ICON_PATH
+from ..utils.util import hide_uid
 from ..utils.name_convert import update_full_body
 from ..pgr_config import PREFIX
 
@@ -177,7 +178,7 @@ async def draw_roleinfo_img(
 
     context = {
         "account": {
-            "roleId": account.roleId if account else uid,
+            "roleId": hide_uid(account.roleId if account else uid),
             "level": account.level if account else 0,
             "roleName": (account.roleName if account else None) or "暂无",
             "serverName": (account.serverName if account else None) or "暂无",

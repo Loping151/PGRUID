@@ -11,6 +11,7 @@ from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import
 
 from ..pgr_config import PREFIX
 from ..utils.database.models import PGRUserSettings
+from ..utils.util import hide_uid
 
 sv_pgr_set = SV("战双设置")
 
@@ -59,7 +60,8 @@ async def set_stamina_bg(bot: Bot, ev: Event):
 
     res = await PGRUserSettings.set_stamina_bg(user_id, ev.bot_id, uid, value)
     if res == 0:
+        masked_uid = hide_uid(uid)
         if not value:
-            return await bot.send(f"已重置体力背景为默认!\nUID[{uid}]")
-        return await bot.send(f"设置成功!\nUID[{uid}]\n当前体力背景: {Path(value).name}")
+            return await bot.send(f"已重置体力背景为默认!\nUID[{masked_uid}]")
+        return await bot.send(f"设置成功!\nUID[{masked_uid}]\n当前体力背景: {Path(value).name}")
     return await bot.send("设置失败!")

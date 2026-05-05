@@ -5,6 +5,7 @@ from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 
 from ..pgr_config import PREFIX
+from ..utils.util import hide_uid
 
 # 直接复用 xwuid 的数据库和登录
 from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
@@ -69,10 +70,11 @@ async def pgr_bind_msg(bot: Bot, ev: Event):
         if res == 0 or res == -2:
             await WavesBind.switch_uid_by_game(qid, ev.bot_id, uid, game_name="pgr")
 
+        masked_uid = hide_uid(uid)
         msg_map = {
-            0: f"[战双] UID[{uid}]绑定成功！\n使用【{PREFIX}查看】查看已绑定的UID",
-            -1: f"[战双] UID[{uid}]格式不正确！",
-            -2: f"[战双] UID[{uid}]已经绑定过了！",
+            0: f"[战双] UID[{masked_uid}]绑定成功！\n使用【{PREFIX}查看】查看已绑定的UID",
+            -1: f"[战双] UID[{masked_uid}]格式不正确！",
+            -2: f"[战双] UID[{masked_uid}]已经绑定过了！",
             -3: "[战双] 输入了错误的格式!",
         }
         return await _send_text(bot, ev, msg_map.get(res, f"[战双] 绑定失败(code={res})"))
@@ -82,13 +84,13 @@ async def pgr_bind_msg(bot: Bot, ev: Event):
         if retcode == 0:
             uid_list = await WavesBind.get_uid_list_by_game(qid, ev.bot_id, game_name="pgr")
             if uid_list:
-                return await _send_text(bot, ev, f"[战双] 切换UID[{uid_list[0]}]成功！")
+                return await _send_text(bot, ev, f"[战双] 切换UID[{hide_uid(uid_list[0])}]成功！")
             else:
                 return await _send_text(bot, ev, "[战双] 尚未绑定任何UID")
         elif retcode == -3:
             return await _send_text(bot, ev, "[战双] 只绑定了一个UID，无需切换")
         else:
-            return await _send_text(bot, ev, f"[战双] 尚未绑定该UID[{uid}]")
+            return await _send_text(bot, ev, f"[战双] 尚未绑定该UID[{hide_uid(uid)}]")
 
     elif "查看" in ev.command:
         uid_list = await WavesBind.get_uid_list_by_game(qid, ev.bot_id, game_name="pgr")
@@ -96,7 +98,7 @@ async def pgr_bind_msg(bot: Bot, ev: Event):
             lines = ["[战双] 已绑定的UID列表："]
             for idx, u in enumerate(uid_list, 1):
                 current = " (当前)" if idx == 1 else ""
-                lines.append(f"  {idx}. {u}{current}")
+                lines.append(f"  {idx}. {hide_uid(u)}{current}")
             return await _send_text(bot, ev, "\n".join(lines))
         else:
             return await _send_text(bot, ev, "[战双] 尚未绑定任何UID")
@@ -114,11 +116,12 @@ async def pgr_bind_msg(bot: Bot, ev: Event):
             return await _send_text(bot, ev, f"[战双] 该命令需要带上UID\n例如：{PREFIX}删除12345678")
 
         res = await WavesBind.delete_uid(qid, ev.bot_id, uid, game_name="pgr")
+        masked_uid = hide_uid(uid)
         if res != 0:
-            return await _send_text(bot, ev, f"[战双] 尚未绑定该UID[{uid}]")
+            return await _send_text(bot, ev, f"[战双] 尚未绑定该UID[{masked_uid}]")
 
         await WavesUser.delete_cookie(uid, qid, ev.bot_id, game_id=PGR_GAME_ID)
-        return await _send_text(bot, ev, f"[战双] 删除UID[{uid}]成功")
+        return await _send_text(bot, ev, f"[战双] 删除UID[{masked_uid}]成功")
 
 
 # ===== 添加/获取 Token =====
@@ -187,7 +190,7 @@ async def pgr_get_token_msg(bot: Bot, ev: Event):
         ck = await pgr_api.get_self_pgr_ck(uid, ev.user_id, ev.bot_id)
         if not ck:
             continue
-        msg.append(f"战双uid: {uid} 的 token 和 did")
+        msg.append(f"战双uid: {hide_uid(uid)} 的 token 和 did")
         msg.append(f"添加token {waves_user.cookie}, {waves_user.did}")
         msg.append("--------------------------------")
 

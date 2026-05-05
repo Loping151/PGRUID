@@ -10,6 +10,7 @@ from typing import Union
 from gsuid_core.logger import logger
 
 from ..utils.api.requests import pgr_api
+from ..utils.util import hide_uid
 from ..utils.image import pic_download_from_url
 from ..utils.path import (
     ROLE_ICON_PATH,
@@ -312,7 +313,7 @@ async def draw_char_card(
 
     # 账号信息 + 头像
     context["account"] = {
-        "roleId": account.roleId if account else uid,
+        "roleId": hide_uid(account.roleId if account else uid),
         "level": account.level if account else 0,
         "roleName": (account.roleName if account else None) or "暂无",
         "serverName": (account.serverName if account else None) or "暂无",
