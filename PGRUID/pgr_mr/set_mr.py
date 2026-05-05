@@ -6,10 +6,12 @@ from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 from gsuid_core.logger import logger
 
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
+from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
+from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.hide_uid_pref import set_pref as _set_hide_uid_pref
 
 from ..pgr_config import PREFIX
+from ..utils.constants import PGR_GAME_ID
 from ..utils.database.models import PGRUserSettings
 from ..utils.util import hide_uid
 
@@ -65,3 +67,43 @@ async def set_stamina_bg(bot: Bot, ev: Event):
             return await bot.send(f"已重置体力背景为默认!\nUID[{masked_uid}]")
         return await bot.send(f"设置成功!\nUID[{masked_uid}]\n当前体力背景: {Path(value).name}")
     return await bot.send("设置失败!")
+
+
+@sv_pgr_set.on_prefix("设置")
+async def set_hide_uid_pgr(bot: Bot, ev: Event):
+    """战双 设置(取消)隐藏UID. 仅登录的本人 WavesUser(game_id=PGR) 行可写, uid 大小写无关.
+
+    不带 block, 让 ev.text 不含 "隐藏uid" 时静默放行其它"设置..."处理器。
+    """
+    if "隐藏uid" not in ev.text.lower():
+        return
+    user_id = ruser_id(ev)
+
+    uid_list = await WavesBind.get_uid_list_by_game(user_id, ev.bot_id, game_name="pgr")
+    if not uid_list:
+        return await bot.send(f"尚未绑定战双UID，请使用【{PREFIX}绑定 UID】进行绑定")
+    uid = uid_list[0]
+
+    waves_user = await WavesUser.select_waves_user(
+        uid, user_id, ev.bot_id, game_id=PGR_GAME_ID
+    )
+    if not waves_user:
+        return await bot.send(
+            f"当前UID[{hide_uid(uid)}]未登录战双账号, 请先使用【{PREFIX}登录】完成绑定"
+        )
+
+    value = "off" if "取消" in ev.text else "on"
+    await WavesUser.update_data_by_data(
+        select_data={
+            "user_id": user_id,
+            "bot_id": ev.bot_id,
+            "uid": uid,
+            "game_id": PGR_GAME_ID,
+        },
+        update_data={"hide_uid_self_value": value},
+    )
+
+    _set_hide_uid_pref(uid, value)
+
+    action = "已开启" if value == "on" else "已关闭"
+    await bot.send(f"{action}隐藏UID!\nUID[{hide_uid(uid)}]")
