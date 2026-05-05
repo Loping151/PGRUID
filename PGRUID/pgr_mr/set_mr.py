@@ -8,7 +8,6 @@ from gsuid_core.logger import logger
 
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
 from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.hide_uid_pref import set_pref as _set_hide_uid_pref
 
 from ..pgr_config import PREFIX
 from ..utils.constants import PGR_GAME_ID
@@ -103,7 +102,5 @@ async def set_hide_uid_pgr(bot: Bot, ev: Event):
         update_data={"hide_uid_self_value": value},
     )
 
-    _set_hide_uid_pref(uid, value)
-
     action = "已开启" if value == "on" else "已关闭"
-    await bot.send(f"{action}隐藏UID!\nUID[{hide_uid(uid)}]")
+    await bot.send(f"{action}隐藏UID!\nUID[{hide_uid(uid, user_pref=value)}]")
