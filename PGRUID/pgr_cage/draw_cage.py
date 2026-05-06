@@ -8,7 +8,7 @@ from typing import Union
 from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
-from ..utils.util import hide_uid
+from ..utils.util import get_hide_uid_pref, hide_uid
 from ..utils.image import pic_download_from_url
 from ..utils.path import ROLE_ICON_PATH, GAMEMODE_PATH
 from ..pgr_config import PREFIX
@@ -57,6 +57,7 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
     _is_self, ck = await pgr_api.get_ck_result(uid, user_id, bot_id)
     if not ck:
         return f"[战双] token 已失效，请使用【{PREFIX}登录】重新绑定！"
+    user_pref = await get_hide_uid_pref(uid, user_id, bot_id)
 
     cage_data, account = await asyncio.gather(
         pgr_api.get_prisoner_cage(uid, ck),
@@ -219,7 +220,10 @@ async def draw_cage_img(ev, uid: str) -> Union[bytes, str]:
 
     context = {
         "account": {
-            "roleId": hide_uid(account.roleId if account else uid),
+            "roleId": hide_uid(
+                account.roleId if account else uid,
+                user_pref=user_pref,
+            ),
             "level": account.level if account else 0,
             "roleName": (account.roleName if account else None) or "暂无",
             "serverName": (account.serverName if account else None) or "暂无",

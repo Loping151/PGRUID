@@ -13,7 +13,7 @@ from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.path import ROLE_ICON_PATH
-from ..utils.util import hide_uid
+from ..utils.util import get_hide_uid_pref, hide_uid
 from ..utils.name_convert import update_full_body
 from ..pgr_config import PREFIX
 
@@ -82,6 +82,7 @@ async def draw_roleinfo_img(
     _is_self, ck = await pgr_api.get_ck_result(uid, user_id, bot_id)
     if not ck:
         return f"[战双] 您的token已失效，请使用【{PREFIX}登录】重新绑定！"
+    user_pref = await get_hide_uid_pref(uid, user_id, bot_id)
 
     # 并发请求三个接口
     account, base, role_index = await asyncio.gather(
@@ -178,7 +179,10 @@ async def draw_roleinfo_img(
 
     context = {
         "account": {
-            "roleId": hide_uid(account.roleId if account else uid),
+            "roleId": hide_uid(
+                account.roleId if account else uid,
+                user_pref=user_pref,
+            ),
             "level": account.level if account else 0,
             "roleName": (account.roleName if account else None) or "暂无",
             "serverName": (account.serverName if account else None) or "暂无",
