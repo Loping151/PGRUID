@@ -14,6 +14,14 @@ sv_cage = SV("战双幻痛囚笼")
 @sv_cage.on_fullmatch(
     ("幻痛囚笼", "囚笼", "幻痛"),
     block=True,
+    to_ai="""查询自己战双 (PGR) 账号本期幻痛囚笼挑战的进度与得分。
+
+当用户问「战双囚笼 / pgr 幻痛 / 幻痛囚笼打到哪 / 本期囚笼」时调用。
+需绑定战双 UID。
+
+Args:
+    text: 无需参数。
+""",
 )
 async def pgr_cage(bot: Bot, ev: Event):
     uid = await WavesBind.get_uid_by_game(ruser_id(ev), ev.bot_id, game_name="pgr")

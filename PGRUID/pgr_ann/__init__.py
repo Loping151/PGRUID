@@ -25,7 +25,17 @@ task_name_ann = "订阅战双公告"
 ann_minute_check: int = PGRConfig.get_config("AnnMinuteCheck").data
 
 
-@sv_ann.on_command("公告")
+@sv_ann.on_command(
+    "公告",
+    to_ai="""查询战双 (PGR) 官方公告：列表或指定 ID 详情。
+
+当用户问「战双公告 / 战双公告列表 / 战双公告 <编号> / pgr 看看公告」时调用。
+不需要绑定 UID。
+
+Args:
+    text: 留空或填 "列表" 返回公告列表；填数字（如 "#123" / "123"）返回该 ID 的公告详情。
+""",
+)
 async def ann_(bot: Bot, ev: Event):
     ann_id = ev.text
     if not ann_id or ann_id.strip() == "列表":

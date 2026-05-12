@@ -54,6 +54,14 @@ async def _send(bot: Bot, ev: Event, msg: str):
 @sv_char.on_regex(
     rf"^(?P<name>{CHAR_NAME_PATTERN})(?:面板|面包|🍞|mb)$",
     block=True,
+    to_ai="""查询自己战双 (PGR) 指定角色的面板（属性 / 武器 / 意识等），从缓存读取不实时刷新。
+
+当用户问「<角色名>面板 / pgr <角色>面板 / 看看我的战双某角色练度」时调用。
+需绑定战双 UID。
+
+Args:
+    raw_text: 必须形如 "<角色名>面板" / "<角色名>mb" / "<角色名>面包" / "<角色名>🍞"。
+""",
 )
 async def pgr_char_panel(bot: Bot, ev: Event):
     name = ev.regex_dict.get("name", "").strip()
@@ -78,6 +86,14 @@ async def pgr_char_panel(bot: Bot, ev: Event):
 @sv_refresh.on_regex(
     rf"^(?:刷新|更新)(?P<name>{CHAR_NAME_PATTERN})(?:面板|面包|🍞|mb)$",
     block=True,
+    to_ai="""刷新（实时拉接口）自己战双 (PGR) 某个角色的面板缓存。
+
+当用户问「刷新 <角色>面板 / 更新 <角色>面板 / 重新拉一下战双 <角色>」时调用。
+需绑定战双 UID，且服务端走单角色 CD。
+
+Args:
+    raw_text: 必须形如 "刷新<角色>面板" / "更新<角色>mb" 等。
+""",
 )
 async def pgr_refresh_one(bot: Bot, ev: Event):
     name = ev.regex_dict.get("name", "").strip()
@@ -113,6 +129,14 @@ async def pgr_refresh_one(bot: Bot, ev: Event):
         "面板刷新", "面板更新", "面板", "面版",
     ),
     block=True,
+    to_ai="""一次性刷新自己战双 (PGR) 全部角色面板缓存（耗时较长，每个角色之间限速）。
+
+当用户问「战双面板 / 刷新面板 / 更新所有面板 / 我的战双全部刷一下」时调用。
+需绑定战双 UID 和有效 token，且服务端走全员 CD。返回成功 / 总数统计。
+
+Args:
+    text: 无需参数。
+""",
 )
 async def pgr_refresh_all(bot: Bot, ev: Event):
     uid = await WavesBind.get_uid_by_game(ev.user_id, ev.bot_id, game_name="pgr")

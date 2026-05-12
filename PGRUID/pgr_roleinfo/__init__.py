@@ -15,6 +15,14 @@ sv_roleinfo = SV("战双卡片")
 @sv_roleinfo.on_fullmatch(
     ("卡片", "card", "信息", "kp"),
     block=True,
+    to_ai="""查询自己战双 (PGR) 账号的综合信息卡片（指挥使等级、伊甸资历、装备等）。
+
+当用户问「我的战双信息 / pgr 卡片 / 战双个人面板 / 战双指挥使」时调用。
+需绑定战双 UID。
+
+Args:
+    text: 无需参数。
+""",
 )
 async def pgr_roleinfo(bot: Bot, ev: Event):
     uid = await WavesBind.get_uid_by_game(ruser_id(ev), ev.bot_id, game_name="pgr")

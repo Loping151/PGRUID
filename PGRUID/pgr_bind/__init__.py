@@ -30,7 +30,18 @@ async def _send_text(bot: Bot, ev: Event, msg: str):
 
 # ===== 登录 =====
 
-@pgr_login.on_command(("登录", "登陆", "登入", "login", "dl"), block=True)
+@pgr_login.on_command(
+    ("登录", "登陆", "登入", "login", "dl"),
+    block=True,
+    to_ai="""战双 (PGR) 登录的入口指令：仅发送一条引导提示消息，告诉用户去走鸣潮共用的库洛账号登录。
+
+当用户问「pgr 登录 / 战双登录 / 战双怎么登录 / 战双怎么绑定」时调用。
+这条命令不会触发账号登录流程，只是返回纯文本指引，所以可以安全代为执行。
+
+Args:
+    text: 无需参数。
+""",
+)
 async def pgr_login_msg(bot: Bot, ev: Event):
     xw_prefix = get_plugin_available_prefix("XutheringWavesUID")
     return await _send_text(

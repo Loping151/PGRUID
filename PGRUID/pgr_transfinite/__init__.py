@@ -14,6 +14,14 @@ sv_trans = SV("战双历战映射")
 @sv_trans.on_fullmatch(
     ("历战映射", "历战", "映射"),
     block=True,
+    to_ai="""查询自己战双 (PGR) 账号的历战映射进度。
+
+当用户问「战双历战 / pgr 映射 / 我的历战进度 / 历战映射打到哪」时调用。
+需绑定战双 UID。
+
+Args:
+    text: 无需参数。
+""",
 )
 async def pgr_transfinite(bot: Bot, ev: Event):
     uid = await WavesBind.get_uid_by_game(ruser_id(ev), ev.bot_id, game_name="pgr")

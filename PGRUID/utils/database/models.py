@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from gsuid_core.utils.database.base_models import BaseIDModel, BaseBotIDModel, with_session
 
 # 从 xwuid 导入数据库模型
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.waves_subscribe import (
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.waves_subscribe import (
     WavesSubscribe,
 )
 

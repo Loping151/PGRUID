@@ -20,7 +20,7 @@ async def get_hide_uid_pref(uid: str, user_id: str, bot_id: str) -> str:
     """读战双账号的 hide_uid_self_value, 没绑定就回空 (走全局 HideUid)。"""
 
     from ..utils.constants import PGR_GAME_ID
-    from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import (
+    from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import (
         WavesUser,
     )
 

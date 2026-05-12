@@ -17,10 +17,10 @@ from ..utils.api.model import PGRDailyData, PGRAccountData
 from ..utils.api.requests import pgr_api
 from ..utils.database.models import PGRUserSettings
 
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.render_utils import render_html, PLAYWRIGHT_AVAILABLE
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.render_utils import render_html, PLAYWRIGHT_AVAILABLE
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -151,12 +151,8 @@ async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
     account: Optional[PGRAccountData] = valid.get("account_data")
     uid: str = valid["uid"]
 
-    # 用户头像（和卡片一致，QQ头像 size=200）
-    avatar = None
-    if ev.bot_id == "onebot":
-        avatar = await get_qq_avatar(ruser_id(ev), size=640)
-    if avatar is None:
-        avatar = await get_event_avatar(ev)
+    # 用户头像
+    avatar = await get_event_avatar(ev)
     head_b64 = _pil_to_b64(avatar, quality=75)
 
     # 准备图标 b64（和卡片指令一致的素材）

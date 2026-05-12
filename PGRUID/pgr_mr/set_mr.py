@@ -6,8 +6,8 @@ from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 from gsuid_core.logger import logger
 
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
-from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..pgr_config import PREFIX
 from ..utils.constants import PGR_GAME_ID
@@ -35,7 +35,7 @@ async def set_stamina_bg(bot: Bot, ev: Event):
 
     # 如果传了图片
     if ev.image:
-        from gsuid_core.plugins.XutheringWavesUID.XutheringWavesUID.utils.image import pic_download_from_url
+        from plugins.XutheringWavesUID.XutheringWavesUID.utils.image import pic_download_from_url
         from ..utils.path import MAIN_PATH
 
         save_dir = MAIN_PATH / "custom_bg" / uid

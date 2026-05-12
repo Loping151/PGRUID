@@ -14,6 +14,14 @@ sv_stronghold = SV("战双诺曼复兴战")
 @sv_stronghold.on_fullmatch(
     ("诺曼复兴战", "诺曼", "复兴战", "矿区"),
     block=True,
+    to_ai="""查询自己战双 (PGR) 账号在诺曼复兴战（矿区）的进度。
+
+当用户问「战双诺曼 / pgr 复兴战 / 矿区进度 / 诺曼复兴战」时调用。
+需绑定战双 UID。
+
+Args:
+    text: 无需参数。
+""",
 )
 async def pgr_stronghold(bot: Bot, ev: Event):
     uid = await WavesBind.get_uid_by_game(ruser_id(ev), ev.bot_id, game_name="pgr")
