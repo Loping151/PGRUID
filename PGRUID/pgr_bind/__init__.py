@@ -8,10 +8,10 @@ from ..pgr_config import PREFIX
 from ..utils.util import hide_uid
 
 # 直接复用 xwuid 的数据库和登录
-from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
-from XutheringWavesUID.XutheringWavesUID.utils.constants import PGR_GAME_ID, WAVES_GAME_ID
-from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.deal import add_cookie
-from XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.login_succ import login_success_msg
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.constants import PGR_GAME_ID, WAVES_GAME_ID
+from plugins.XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.deal import add_cookie
+from plugins.XutheringWavesUID.XutheringWavesUID.wutheringwaves_user.login_succ import login_success_msg
 from gsuid_core.sv import get_plugin_available_prefix
 
 pgr_bind_uid = SV("战双绑定UID", priority=10)

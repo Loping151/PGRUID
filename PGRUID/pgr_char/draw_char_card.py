@@ -25,12 +25,12 @@ from ..utils.name_convert import get_body_name_by_id
 from ..pgr_config import PREFIX
 
 # 复用 xwuid 的渲染工具
-from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     PLAYWRIGHT_AVAILABLE,
     render_html,
     image_to_base64,
 )
-from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
+from plugins.XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
 
 
 # ===== URL 资源下载 =====
@@ -153,7 +153,7 @@ async def draw_char_card(
     ev, uid: str, body_id: int, use_cache: bool = True
 ) -> Union[bytes, str]:
     from gsuid_core.models import Event
-    from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
+    from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
     user_id = ruser_id(ev)
     bot_id = ev.bot_id
 
@@ -195,12 +195,8 @@ async def draw_char_card(
     account = await pgr_api.get_account_data(uid, ck)
 
     # 用户头像
-    from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
-    avatar_img = None
-    if ev.bot_id == "onebot":
-        avatar_img = await get_qq_avatar(user_id, size=640)
-    if avatar_img is None:
-        avatar_img = await get_event_avatar(ev)
+    from plugins.XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
+    avatar_img = await get_event_avatar(ev)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # 准备渲染上下文

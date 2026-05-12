@@ -5,7 +5,7 @@ from pathlib import Path
 
 from gsuid_core.logger import logger
 
-from XutheringWavesUID.XutheringWavesUID.utils.render_utils import render_html, image_to_base64
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.render_utils import render_html, image_to_base64
 from jinja2 import Environment, FileSystemLoader
 
 IMGS_PATH = Path(__file__).parent / "imgs"

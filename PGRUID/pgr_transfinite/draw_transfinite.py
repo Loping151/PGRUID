@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Union
 
 from gsuid_core.logger import logger
-from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
 from ..utils.util import get_hide_uid_pref, hide_uid
@@ -13,13 +13,13 @@ from ..utils.path import ROLE_ICON_PATH, GAMEMODE_PATH
 from ..pgr_config import PREFIX
 from ..pgr_roleinfo.draw_roleinfo import _get_grade_info
 
-from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     PLAYWRIGHT_AVAILABLE,
     render_html,
     image_to_base64,
 )
-from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
-from XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, get_qq_avatar, pil_to_b64
+from plugins.XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
 from jinja2 import Environment, FileSystemLoader
 
 IMGS_PATH = Path(__file__).parent / "imgs"
@@ -70,11 +70,7 @@ async def draw_transfinite_img(ev, uid: str) -> Union[bytes, str]:
         await asyncio.gather(*download_tasks, return_exceptions=True)
 
     # 用户头像
-    avatar_img = None
-    if ev.bot_id == "onebot":
-        avatar_img = await get_qq_avatar(user_id, size=640)
-    if avatar_img is None:
-        avatar_img = await get_event_avatar(ev)
+    avatar_img = await get_event_avatar(ev)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # Boss 图标

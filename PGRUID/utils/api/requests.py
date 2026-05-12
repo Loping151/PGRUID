@@ -45,8 +45,8 @@ from .model import (
 from ..constants import PGR_GAME_ID
 
 # 直接复用 xwuid 的 waves_api 实例（含 session、代理、重试等）
-from XutheringWavesUID.XutheringWavesUID.utils.waves_api import waves_api
-from XutheringWavesUID.XutheringWavesUID.utils.api.request_util import (
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.waves_api import waves_api
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.api.request_util import (
     KuroApiResp,
     get_base_header,
     get_community_header,
@@ -149,7 +149,7 @@ class PGRApi:
         self, uid: str, user_id: str, bot_id: str
     ) -> Optional[str]:
         """获取并验证 PGR 用户的 token，返回有效 token 或空串"""
-        from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesUser
+        from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesUser
 
         waves_user = await WavesUser.select_waves_user(uid, user_id, bot_id, game_id=PGR_GAME_ID)
         if not waves_user or not waves_user.cookie:
@@ -178,7 +178,7 @@ class PGRApi:
 
     async def get_pgr_random_cookie(self, uid: str) -> Optional[str]:
         """随机获取一个有效的公共 PGR cookie"""
-        from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesUser
+        from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesUser
 
         user_list = await WavesUser.get_waves_all_user()
         random.shuffle(user_list)

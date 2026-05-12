@@ -13,18 +13,18 @@ from ..pgr_config import PREFIX
 from ..utils.path import ANN_CACHE_PATH, BAKE_PATH
 
 # 直接从 xwuid 导入渲染工具和模板
-from XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.render_utils import (
     PLAYWRIGHT_AVAILABLE,
     get_logo_b64,
     get_footer_b64,
     get_image_b64_with_cache,
     render_html,
 )
-from XutheringWavesUID.XutheringWavesUID.utils.resource.RESOURCE_PATH import (
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.resource.RESOURCE_PATH import (
     waves_templates,
 )
-from XutheringWavesUID.XutheringWavesUID.utils.image import pic_download_from_url
-from XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.image import pic_download_from_url
+from plugins.XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import WutheringWavesConfig
 
 
 def format_date(ts) -> str:

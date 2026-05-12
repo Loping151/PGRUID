@@ -5,8 +5,8 @@ from gsuid_core.models import Event
 from ..pgr_config import PREFIX
 from .draw_transfinite import draw_transfinite_img
 
-from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
-from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 sv_trans = SV("战双历战映射")
 

@@ -17,8 +17,8 @@ from ..utils.name_convert import (
 )
 from .draw_char_card import draw_char_card
 
-from XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
-from XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 sv_char = SV("战双角色面板", priority=5)
 sv_refresh = SV("战双刷新面板", priority=4)
