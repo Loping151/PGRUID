@@ -66,8 +66,6 @@ async def ann_(bot: Bot, ev: Event):
 
 @sv_ann_sub.on_fullmatch(("订阅公告", "訂閱公告"))
 async def sub_ann_(bot: Bot, ev: Event):
-    if ev.bot_id != "onebot" and ev.bot_id != "feishu" and ev.bot_id != "lark" and ev.bot_id != "qqgroup":
-        return
 
     if ev.group_id is None:
         return await bot.send("请在群聊中订阅")
@@ -98,8 +96,6 @@ async def sub_ann_(bot: Bot, ev: Event):
 
 @sv_ann_sub.on_fullmatch(("取消订阅公告", "取消公告", "退订公告", "取消訂閱公告", "退訂公告"))
 async def unsub_ann_(bot: Bot, ev: Event):
-    if ev.bot_id != "onebot" and ev.bot_id != "feishu" and ev.bot_id != "lark" and ev.bot_id != "qqgroup":
-        return
 
     if ev.group_id is None:
         return await bot.send("请在群聊中取消订阅")
