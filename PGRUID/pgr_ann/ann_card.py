@@ -79,10 +79,11 @@ async def ann_list_card() -> bytes:
         1: {"name": "活动", "color": "#F97316"},
         2: {"name": "资讯", "color": "#3B82F6"},
         3: {"name": "公告", "color": "#10B981"},
+        4: {"name": "周边", "color": "#8B5CF6"},
     }
 
     sections = []
-    for t in [1, 2, 3]:
+    for t in [1, 2, 3, 4]:
         if t not in grouped:
             continue
         section_items = []
@@ -94,6 +95,10 @@ async def ann_list_card() -> bytes:
                 cover_images = item.get("coverImages", [])
                 if cover_images:
                     cover_url = cover_images[0].get("url", "")
+            if t == 4 and not cover_url:
+                img_content = item.get("imgContent", [])
+                if img_content:
+                    cover_url = img_content[0].get("url", "")
             if not cover_url:
                 video_content = item.get("videoContent", [])
                 if video_content:
@@ -106,7 +111,10 @@ async def ann_list_card() -> bytes:
             post_id = item.get("postId", "") or str(item.get("id", ""))
             from .utils.post_id_mapper import get_or_create_short_id
             short_id = get_or_create_short_id(post_id)
-            date_str = format_date(item.get("publishTime", 0))
+            if t == 4:
+                date_str = item.get("showTime", "") or format_date(item.get("createTimestamp", 0))
+            else:
+                date_str = format_date(item.get("publishTime", 0))
 
             section_items.append({
                 "id": str(item.get("id", "")),
