@@ -55,7 +55,7 @@ async def _process_uid(uid: str, ev: Event) -> Optional[Dict]:
     """处理单个 UID 的数据获取"""
     _is_self, ck = await pgr_api.get_ck_result(uid, ruser_id(ev), ev.bot_id)
     if not ck:
-        logger.info(f"[战双][体力] UID {uid} 获取cookie失败，跳过")
+        logger.info(f"[战双·体力] UID {uid} 获取cookie失败，跳过")
         return None
 
     results = await asyncio.gather(
@@ -67,19 +67,19 @@ async def _process_uid(uid: str, ev: Event) -> Optional[Dict]:
     daily_data, account_data = results
 
     if isinstance(daily_data, Exception):
-        logger.warning(f"[战双][体力] UID {uid} get_daily_data 异常: {daily_data}")
+        logger.warning(f"[战双·体力] UID {uid} get_daily_data 异常: {daily_data}")
         return None
     if isinstance(account_data, Exception):
-        logger.warning(f"[战双][体力] UID {uid} get_account_data 异常: {account_data}")
+        logger.warning(f"[战双·体力] UID {uid} get_account_data 异常: {account_data}")
         account_data = None
     if not isinstance(daily_data, PGRDailyData):
-        logger.info(f"[战双][体力] UID {uid} daily_data 无效: {type(daily_data)}")
+        logger.info(f"[战双·体力] UID {uid} daily_data 无效: {type(daily_data)}")
         return None
     if not isinstance(account_data, PGRAccountData):
-        logger.info(f"[战双][体力] UID {uid} account_data 为空，使用默认值")
+        logger.info(f"[战双·体力] UID {uid} account_data 为空，使用默认值")
         account_data = None
 
-    logger.info(f"[战双][体力] UID {uid} 数据获取成功: {(account_data.roleName if account_data else '') or ''} Lv.{(account_data.level if account_data else 0) or 0}")
+    logger.info(f"[战双·体力] UID {uid} 数据获取成功: {(account_data.roleName if account_data else '') or ''} Lv.{(account_data.level if account_data else 0) or 0}")
     return {
         "daily_data": daily_data,
         "account_data": account_data,
@@ -141,7 +141,7 @@ async def draw_mr_img(bot: Bot, ev: Event):
         return await convert_img(combined)
 
     except Exception:
-        logger.exception("[战双][体力]绘图失败")
+        logger.exception("[战双·体力] 绘图失败")
         return "体力卡片生成失败，请稍后再试"
 
 
@@ -283,7 +283,7 @@ async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
     }
 
     if not PLAYWRIGHT_AVAILABLE:
-        logger.warning("[战双][体力]Playwright 不可用，无法渲染")
+        logger.warning("[战双·体力] Playwright 不可用，无法渲染")
         return None
 
     try:
@@ -291,6 +291,6 @@ async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
         if img_bytes:
             return Image.open(io.BytesIO(img_bytes))
     except Exception:
-        logger.exception("[战双][体力]HTML渲染失败")
+        logger.exception("[战双·体力] HTML渲染失败")
 
     return None

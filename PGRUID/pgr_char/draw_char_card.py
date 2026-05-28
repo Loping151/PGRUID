@@ -42,7 +42,7 @@ async def _download_url(path: Path, url: str, save_name: str = ""):
     try:
         await pic_download_from_url(path, url, save_name=save_name)
     except Exception as e:
-        logger.warning(f"[PGR] 下载资源失败: {url}, {e}")
+        logger.warning(f"[战双·角色渲染] 下载资源失败: {url}, {e}")
 
 
 async def _download_all_urls(detail_data: dict):

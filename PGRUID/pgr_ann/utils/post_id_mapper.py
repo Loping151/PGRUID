@@ -54,7 +54,7 @@ class PostIdMapper:
                 self.id_to_post = data.get("id_to_post", {})
                 self.post_to_id = data.get("post_to_id", {})
         except Exception as e:
-            logger.warning(f"[PGR PostIdMapper] 加载映射失败: {e}")
+            logger.warning(f"[战双·公告ID映射] 加载映射失败: {e}")
 
     def save(self):
         try:
@@ -65,7 +65,7 @@ class PostIdMapper:
                     "post_to_id": self.post_to_id,
                 }, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            logger.error(f"[PGR PostIdMapper] 保存映射失败: {e}")
+            logger.error(f"[战双·公告ID映射] 保存映射失败: {e}")
 
 
 _mapper = PostIdMapper()

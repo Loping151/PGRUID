@@ -62,12 +62,12 @@ async def update_full_body(role_index) -> Dict[str, dict]:
             try:
                 await pic_download_from_url(ROLE_ICON_PATH, char.iconUrl, save_name=body_id)
             except Exception as e:
-                logger.warning(f"[PGR] 下载角色图标失败: {char.bodyName}, {e}")
+                logger.warning(f"[战双·名称转换] 下载角色图标失败: {char.bodyName}, {e}")
 
     new_count = len(full_body)
     if new_count > old_count:
         save_full_body(full_body)
-        logger.info(f"[PGR] full_body.json 已更新: {old_count} -> {new_count}")
+        logger.info(f"[战双·名称转换] full_body.json 已更新: {old_count} -> {new_count}")
         # 同步刷新 name2id
         _rebuild_name2id(full_body)
 

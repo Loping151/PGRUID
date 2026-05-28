@@ -42,15 +42,15 @@ async def pic_download_from_url(
     try:
         img = Image.open(_path).convert("RGBA")
     except Exception as e:
-        logger.warning(f"[PGR] 打开图片失败: {_path}, {e}")
+        logger.warning(f"[战双·图像] 打开图片失败: {_path}, {e}")
         raise
 
     if _path != webp_path:
         try:
             img.save(webp_path, "WEBP", quality=85)
             _path.unlink(missing_ok=True)
-            logger.debug(f"[PGR] 已将图片转为webp: {webp_path.name}")
+            logger.debug(f"[战双·图像] 已将图片转为webp: {webp_path.name}")
         except Exception as e:
-            logger.warning(f"[PGR] 转换webp失败: {e}")
+            logger.warning(f"[战双·图像] 转换webp失败: {e}")
 
     return img

@@ -10,4 +10,4 @@ Plugins(
     allow_empty_prefix=False
 )
 
-logger.success("[PGRUID] 插件加载完成")
+logger.success("[战双·插件] 插件加载完成")

@@ -219,7 +219,7 @@ async def ann_detail_card(
                     img_bytes = await convert_img(img)
                     result_images.append(img_bytes)
                 except Exception as e:
-                    logger.warning(f"[PGRUID] 下载超长图片失败: {img_url}, {e}")
+                    logger.warning(f"[战双·公告] 下载超长图片失败: {img_url}, {e}")
 
             post_content = [
                 item for item in post_content
@@ -279,5 +279,5 @@ async def ann_detail_card(
         return "渲染失败"
 
     except Exception as e:
-        logger.exception(f"[PGRUID] HTML渲染失败: {e}")
+        logger.exception(f"[战双·公告] HTML渲染失败: {e}")
         return f"渲染失败: {e}"

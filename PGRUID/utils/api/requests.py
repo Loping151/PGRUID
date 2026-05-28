@@ -96,9 +96,9 @@ class PGRApi:
                 if str(role.get("roleId")) == str(role_id):
                     sid = str(role.get("serverId", ""))
                     if sid:
-                        logger.info(f"[PGRUID] UID {role_id} serverId={sid}")
+                        logger.info(f"[战双·API] UID {role_id} serverId={sid}")
                         return sid
-        logger.warning(f"[PGRUID] 未获取到 UID {role_id} 的 serverId，使用默认 1000")
+        logger.warning(f"[战双·API] 未获取到 UID {role_id} 的 serverId，使用默认 1000")
         return "1000"
 
     # ===== 通用游戏数据请求（带 serverId 自动重试） =====
@@ -135,7 +135,7 @@ class PGRApi:
 
         from ..database.models import PGRServerMap
         logger.info(
-            f"[PGRUID] UID {role_id} serverId {server_id} → {new_sid}，重试请求"
+            f"[战双·API] UID {role_id} serverId {server_id} → {new_sid}，重试请求"
         )
         await PGRServerMap.set_server_id(role_id, new_sid)
         data["serverId"] = new_sid
@@ -167,7 +167,7 @@ class PGRApi:
         data = await self.refresh_data(uid, waves_user.cookie)
         if not data.success:
             if data.is_server_maintenance:
-                logger.warning(f"[PGRUID] 官方系统维护中，跳过刷新，UID: {uid}")
+                logger.warning(f"[战双·API] 官方系统维护中，跳过刷新，UID: {uid}")
                 await WavesUser.update_last_used_time(uid, user_id, bot_id, game_id=PGR_GAME_ID)
                 return waves_user.cookie
             await data.mark_cookie_invalid(uid, waves_user.cookie)

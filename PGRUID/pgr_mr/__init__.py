@@ -30,7 +30,7 @@ Args:
 """,
 )
 async def send_pgr_mr(bot: Bot, ev: Event):
-    await bot.logger.info(f"[战双]开始执行[体力信息]: {ruser_id(ev)}")
+    await bot.logger.info(f"[战双·MR数据] 开始执行[体力信息]: {ruser_id(ev)}")
     uid = await WavesBind.get_uid_by_game(ruser_id(ev), ev.bot_id, game_name="pgr")
     if not uid:
         return await bot.send(f"尚未绑定战双UID，请使用【{PREFIX}绑定 UID】进行绑定")

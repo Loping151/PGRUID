@@ -121,10 +121,10 @@ async def pgr_check_ann_job():
 
 
 async def check_pgr_ann_state():
-    logger.info("[PGRUID公告] 定时任务: 战双公告查询..")
+    logger.info("[战双·公告] 定时任务: 战双公告查询..")
     datas = await gs_subscribe.get_subscribe(task_name_ann)
     if not datas:
-        logger.info("[PGRUID公告] 暂无群订阅")
+        logger.info("[战双·公告] 暂无群订阅")
         return
 
     ids = get_ann_new_ids()
@@ -135,7 +135,7 @@ async def check_pgr_ann_state():
     new_ann_ids = [x["id"] for x in new_ann_list]
     if not ids:
         set_ann_new_ids(new_ann_ids)
-        logger.info("[PGRUID公告] 初始成功, 将在下个轮询中更新.")
+        logger.info("[战双·公告] 初始成功, 将在下个轮询中更新.")
         return
 
     new_ann_need_send = []
@@ -144,10 +144,10 @@ async def check_pgr_ann_state():
             new_ann_need_send.append(ann_id)
 
     if not new_ann_need_send:
-        logger.info("[PGRUID公告] 没有最新公告")
+        logger.info("[战双·公告] 没有最新公告")
         return
 
-    logger.info(f"[PGRUID公告] 更新公告id: {new_ann_need_send}")
+    logger.info(f"[战双·公告] 更新公告id: {new_ann_need_send}")
     save_ids = sorted(ids, reverse=True) + new_ann_ids
     set_ann_new_ids(list(set(save_ids)))
 
@@ -166,7 +166,7 @@ async def check_pgr_ann_state():
         except Exception as e:
             logger.exception(e)
 
-    logger.info("[PGRUID公告] 推送完毕")
+    logger.info("[战双·公告] 推送完毕")
 
 
 # ===== 缓存清理 =====
@@ -234,7 +234,7 @@ async def clean_cache_directories(days: int) -> str:
 @sv_ann_clear_cache.on_fullmatch(("清理缓存", "删除缓存", "清理緩存", "刪除緩存"), block=True)
 async def pgr_clean_cache_(bot: Bot, ev: Event):
     days = PGRConfig.get_config("CacheDaysToKeep").data
-    logger.info(f"[PGRUID缓存清理] 手动触发清理，保留{days}天内的文件")
+    logger.info(f"[战双·缓存清理] 手动触发清理，保留{days}天内的文件")
     result = await clean_cache_directories(days)
     await bot.send(result)
 
@@ -243,7 +243,7 @@ async def pgr_clean_cache_(bot: Bot, ev: Event):
 async def pgr_auto_clean_cache_daily():
     days = PGRConfig.get_config("CacheDaysToKeep").data
     result = await clean_cache_directories(days)
-    logger.info(f"[PGRUID缓存清理] {result}")
+    logger.info(f"[战双·缓存清理] {result}")
 
 
 @on_core_start
@@ -251,4 +251,4 @@ async def pgr_clean_cache_on_startup():
     await asyncio.sleep(8)
     days = PGRConfig.get_config("CacheDaysToKeep").data
     result = await clean_cache_directories(days)
-    logger.info(f"[PGRUID缓存清理] {result}")
+    logger.info(f"[战双·缓存清理] {result}")

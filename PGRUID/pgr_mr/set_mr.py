@@ -53,7 +53,7 @@ async def set_stamina_bg(bot: Bot, ev: Event):
             final_path = webp_path if webp_path.exists() else saved_path
             value = str(final_path)
         except Exception as e:
-            logger.warning(f"[战双] 下载体力背景图失败: {e}")
+            logger.warning(f"[战双·MR设置] 下载体力背景图失败: {e}")
             return await bot.send("背景图下载失败，请稍后再试")
 
     if value and not Path(value).exists():
