@@ -101,7 +101,7 @@ async def draw_roleinfo_img(
 
     # 用户头像（和 xwuid 一致，先尝试 ev.sender.avatar）
     from plugins.XutheringWavesUID.XutheringWavesUID.utils.image import get_event_avatar, pil_to_b64
-    avatar_img = await get_event_avatar(ev, size=200)
+    avatar_img = await get_event_avatar(ev)
     head_b64 = pil_to_b64(avatar_img, quality=75) if avatar_img else ""
 
     # 本地素材 b64
