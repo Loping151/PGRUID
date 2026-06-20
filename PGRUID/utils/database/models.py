@@ -17,6 +17,8 @@ T_PGRServerMap = TypeVar("T_PGRServerMap", bound="PGRServerMap")
 class PGRServerMap(BaseIDModel, table=True):
     """PGR UID -> ServerId 映射表"""
 
+    __table_args__ = {"extend_existing": True}
+
     uid: str = Field(default="", title="游戏UID", unique=True)
     server_id: str = Field(default="1000", title="服务器ID")
 
@@ -55,6 +57,8 @@ class PGRUserSettings(BaseBotIDModel, table=True):
 
     user_id + bot_id + uid 确定唯一记录
     """
+
+    __table_args__ = {"extend_existing": True}
 
     user_id: str = Field(default="", title="用户ID")
     uid: str = Field(default="", title="游戏UID")
