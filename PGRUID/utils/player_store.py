@@ -37,6 +37,13 @@ def read_player_json_sync(path: PathLike) -> Any:
         return None
 
 
+def _gzip_dump(path: Path, obj: Any) -> None:
+    data = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+    with open(path, "wb") as raw:
+        with gzip.GzipFile(fileobj=raw, mode="wb", compresslevel=6, filename="", mtime=0) as f:
+            f.write(data)
+
+
 def write_player_json_sync(path: PathLike, obj: Any) -> None:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -46,10 +53,11 @@ def write_player_json_sync(path: PathLike, obj: Any) -> None:
     tmp = Path(tmp_name)
     try:
         os.close(fd)
-        fh = gzip.open(tmp, "wt", encoding="utf-8", compresslevel=6) if gz \
-            else open(tmp, "w", encoding="utf-8")
-        with fh:
-            json.dump(obj, fh, ensure_ascii=False)
+        if gz:
+            _gzip_dump(tmp, obj)
+        else:
+            with open(tmp, "w", encoding="utf-8") as fh:
+                json.dump(obj, fh, ensure_ascii=False)
         os.chmod(tmp, 0o644)
         tmp.replace(target)
     except Exception:
