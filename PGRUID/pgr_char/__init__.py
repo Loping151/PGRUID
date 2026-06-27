@@ -12,10 +12,11 @@ from ..utils.name_convert import (
     add_alias,
     remove_alias,
     get_alias_list,
-    get_name2id,
     update_full_body,
 )
 from .draw_char_card import draw_char_card
+from ..utils.path import PLAYER_PATH
+from ..utils.player_store import compress_all
 
 from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
 from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
@@ -23,6 +24,7 @@ from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 sv_char = SV("战双角色面板", priority=5)
 sv_refresh = SV("战双刷新面板", priority=4)
 sv_alias = SV("战双别名管理", priority=10, pm=0)
+sv_pgr_admin = SV("战双数据管理", pm=0)
 
 CHAR_NAME_PATTERN = r"[\u4e00-\u9fa5a-zA-Z0-9·\-]{1,15}"
 
@@ -49,7 +51,7 @@ async def _send(bot: Bot, ev: Event, msg: str):
     return await bot.send((" " if at_sender else "") + msg, at_sender=at_sender)
 
 
-# ===== 查看面板（从缓存读取）=====
+# ===== 查看面板 =====
 
 @sv_char.on_regex(
     rf"^(?P<name>{CHAR_NAME_PATTERN})(?:面板|面包|🍞|mb)$",
@@ -165,7 +167,7 @@ async def pgr_refresh_all(bot: Bot, ev: Event):
     # 更新 full_body.json + 下载图标
     await update_full_body(role_index)
 
-    # 逐个刷新角色详情（限速：每个间隔 0.3s）
+    # 逐个刷新角色详情，限速每个间隔 0.3s
     total = len(role_index.characterList or [])
     success = 0
     for i, char in enumerate(role_index.characterList or []):
@@ -245,3 +247,29 @@ async def pgr_alias_list(bot: Bot, ev: Event):
     for a in aliases:
         lines.append(f"  · {a}")
     return await _send(bot, ev, "\n".join(lines))
+
+
+def _fmt_size(n: float) -> str:
+    for u in ("B", "KB", "MB", "GB"):
+        if n < 1024:
+            return f"{n:.1f}{u}"
+        n /= 1024
+    return f"{n:.1f}TB"
+
+
+@sv_pgr_admin.on_fullmatch(("压缩数据",), block=True)
+async def pgr_compress_data(bot: Bot, ev: Event):
+    import asyncio
+
+    done, fail, before, after = await asyncio.to_thread(compress_all, PLAYER_PATH)
+    if not done:
+        return await _send(bot, ev, f"[战双] 无需压缩（失败 {fail}）")
+    ratio = after / before * 100 if before else 0
+    msg = (
+        "[战双] 压缩完成\n"
+        f"压缩前 {_fmt_size(before)} → 压缩后 {_fmt_size(after)}\n"
+        f"压缩率 {ratio:.1f}%（省 {100 - ratio:.1f}%）"
+    )
+    if fail:
+        msg += f"\n失败 {fail}"
+    return await _send(bot, ev, msg)

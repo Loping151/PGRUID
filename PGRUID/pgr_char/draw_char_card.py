@@ -2,13 +2,13 @@
 
 请求 roleDetail，下载所有 URL 资源并缓存，保存玩家数据（过滤 URL），准备渲染上下文
 """
-import json
 import asyncio
 from pathlib import Path
 from typing import Union
 
 from gsuid_core.logger import logger
 
+from ..utils.player_store import read_player_json_sync, write_player_json_sync
 from ..utils.api.requests import pgr_api
 from ..utils.util import get_hide_uid_pref, hide_uid
 from ..utils.image import pic_download_from_url
@@ -36,7 +36,7 @@ from plugins.XutheringWavesUID.XutheringWavesUID.wutheringwaves_config import Wu
 # ===== URL 资源下载 =====
 
 async def _download_url(path: Path, url: str, save_name: str = ""):
-    """下载 URL 资源到指定目录（带缓存）"""
+    """下载 URL 资源到指定目录"""
     if not url:
         return
     try:
@@ -52,7 +52,7 @@ async def _download_all_urls(detail_data: dict):
     if not char:
         return
 
-    # 角色立绘（用 bodyId 命名）
+    # 角色立绘
     body = (char.get("body") or {})
     body_id = str(body.get("bodyId", "")) if body else ""
     if body:
@@ -104,24 +104,14 @@ async def _download_all_urls(detail_data: dict):
 
 def _save_player_data(uid: str, body_id: int, raw_data: dict):
     """保存角色详情到玩家目录"""
-    player_dir = PLAYER_PATH / uid
-    player_dir.mkdir(parents=True, exist_ok=True)
-
-    path = player_dir / f"{body_id}.json"
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(raw_data, f, ensure_ascii=False, indent=2)
+    path = PLAYER_PATH / uid / f"{body_id}.json"
+    write_player_json_sync(path, raw_data)
 
 
 def _load_player_data(uid: str, body_id: int) -> dict:
     """加载玩家角色数据"""
     path = PLAYER_PATH / uid / f"{body_id}.json"
-    if not path.exists():
-        return {}
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {}
+    return read_player_json_sync(path) or {}
 
 
 # ===== 本地资源 b64 =====
@@ -152,7 +142,6 @@ def _local_b64(cache_dir: Path, url: str, save_name: str = "") -> str:
 async def draw_char_card(
     ev, uid: str, body_id: int, use_cache: bool = True
 ) -> Union[bytes, str]:
-    from gsuid_core.models import Event
     from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
     user_id = ruser_id(ev)
     bot_id = ev.bot_id
@@ -191,7 +180,7 @@ async def draw_char_card(
     char = detail.character
     body = char.body
 
-    # 账号信息（始终从 API 获取）
+    # 账号信息
     account = await pgr_api.get_account_data(uid, ck)
 
     # 用户头像
