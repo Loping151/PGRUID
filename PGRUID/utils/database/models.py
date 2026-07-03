@@ -1,7 +1,10 @@
 """PGRUID 数据库模型"""
-from typing import Dict, List, Type, Optional, TypeVar
+import time
+from typing import Dict, List, Set, Type, Optional, TypeVar
+from contextvars import ContextVar
 
 from sqlmodel import Field, select
+from sqlalchemy.sql import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from gsuid_core.utils.database.base_models import BaseIDModel, BaseBotIDModel, with_session
 
@@ -10,8 +13,13 @@ from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.waves_subscribe 
     WavesSubscribe,
 )
 
+# 公告推送期间置位, 群活跃 hook 据此跳过推送自身
+ANN_PUSH_GUARD: ContextVar[bool] = ContextVar("pgr_ann_push_guard", default=False)
+
 T_PGRUserSettings = TypeVar("T_PGRUserSettings", bound="PGRUserSettings")
 T_PGRServerMap = TypeVar("T_PGRServerMap", bound="PGRServerMap")
+T_PGRGroupActivity = TypeVar("T_PGRGroupActivity", bound="PGRGroupActivity")
+T_PGRUserActivity = TypeVar("T_PGRUserActivity", bound="PGRUserActivity")
 
 
 class PGRServerMap(BaseIDModel, table=True):
@@ -105,3 +113,127 @@ class PGRUserSettings(BaseBotIDModel, table=True):
         else:
             session.add(cls(user_id=user_id, bot_id=bot_id, uid=uid, stamina_bg_value=value))
         return 0
+
+
+class PGRGroupActivity(BaseBotIDModel, table=True):
+    """群活跃度记录表: 群最后有人使用本插件的时间"""
+
+    __tablename__ = "PGRGroupActivity"
+    __table_args__ = {"extend_existing": True}
+
+    group_id: str = Field(default="", title="群组ID")
+    bot_self_id: str = Field(default="", title="BotSelfID")
+    last_active_time: Optional[int] = Field(default=None, title="最后活跃时间")
+
+    @classmethod
+    @with_session
+    async def update_group_activity(
+        cls: Type[T_PGRGroupActivity],
+        session: AsyncSession,
+        group_id: str,
+        bot_id: str,
+        bot_self_id: str,
+    ) -> bool:
+        current_time = int(time.time())
+        sql = select(cls).where(
+            and_(
+                cls.group_id == group_id,
+                cls.bot_id == bot_id,
+                cls.bot_self_id == bot_self_id,
+            )
+        )
+        result = await session.execute(sql)
+        existing = result.scalars().first()
+        if existing:
+            existing.last_active_time = current_time
+            session.add(existing)
+        else:
+            session.add(
+                cls(
+                    group_id=group_id,
+                    bot_id=bot_id,
+                    bot_self_id=bot_self_id,
+                    last_active_time=current_time,
+                )
+            )
+        return True
+
+    @classmethod
+    @with_session
+    async def get_active_group_ids(
+        cls: Type[T_PGRGroupActivity],
+        session: AsyncSession,
+        active_days: int,
+    ) -> Set[str]:
+        """一次性取出所有活跃群的 group_id 集合"""
+        threshold_time = int(time.time()) - active_days * 24 * 60 * 60
+        sql = select(cls.group_id).where(
+            and_(
+                cls.last_active_time.is_not(None),
+                cls.last_active_time >= threshold_time,
+            )
+        )
+        result = await session.execute(sql)
+        return {gid for gid in result.scalars().all() if gid}
+
+
+class PGRUserActivity(BaseBotIDModel, table=True):
+    """用户活跃度记录表: 用户最后使用本插件的时间"""
+
+    __tablename__ = "PGRUserActivity"
+    __table_args__ = {"extend_existing": True}
+
+    user_id: str = Field(default="", title="用户ID")
+    bot_self_id: str = Field(default="", title="BotSelfID")
+    last_active_time: Optional[int] = Field(default=None, title="最后活跃时间")
+
+    @classmethod
+    @with_session
+    async def update_user_activity(
+        cls: Type[T_PGRUserActivity],
+        session: AsyncSession,
+        user_id: str,
+        bot_id: str,
+        bot_self_id: str,
+    ) -> bool:
+        current_time = int(time.time())
+        sql = select(cls).where(
+            and_(
+                cls.user_id == user_id,
+                cls.bot_id == bot_id,
+                cls.bot_self_id == bot_self_id,
+            )
+        )
+        result = await session.execute(sql)
+        existing = result.scalars().first()
+        if existing:
+            existing.last_active_time = current_time
+            session.add(existing)
+        else:
+            session.add(
+                cls(
+                    user_id=user_id,
+                    bot_id=bot_id,
+                    bot_self_id=bot_self_id,
+                    last_active_time=current_time,
+                )
+            )
+        return True
+
+    @classmethod
+    @with_session
+    async def get_active_user_ids(
+        cls: Type[T_PGRUserActivity],
+        session: AsyncSession,
+        active_days: int,
+    ) -> Set[str]:
+        """一次性取出所有活跃用户的 user_id 集合"""
+        threshold_time = int(time.time()) - active_days * 24 * 60 * 60
+        sql = select(cls.user_id).where(
+            and_(
+                cls.last_active_time.is_not(None),
+                cls.last_active_time >= threshold_time,
+            )
+        )
+        result = await session.execute(sql)
+        return {uid for uid in result.scalars().all() if uid}

@@ -16,7 +16,7 @@ from ..utils.api.requests import pgr_api
 from ..pgr_config.config_default import PGRConfig
 from ..pgr_config.ann_config import get_ann_new_ids, set_ann_new_ids
 from ..utils.path import ANN_CACHE_PATH, BAKE_PATH
-from ..utils.database.models import WavesSubscribe
+from ..utils.database.models import WavesSubscribe, PGRGroupActivity, PGRUserActivity, ANN_PUSH_GUARD
 
 sv_ann = SV("战双公告")
 sv_ann_clear_cache = SV("战双公告缓存清理", pm=0, priority=3)
@@ -151,6 +151,23 @@ async def check_pgr_ann_state():
     save_ids = sorted(ids, reverse=True) + new_ann_ids
     set_ann_new_ids(list(set(save_ids)))
 
+    active_days = PGRConfig.get_config("AnnActiveGroupDays").data
+    if active_days:
+        try:
+            active_gids = await PGRGroupActivity.get_active_group_ids(active_days)
+            active_uids = await PGRUserActivity.get_active_user_ids(active_days)
+            kept = [
+                s for s in datas
+                if (s.group_id and s.group_id in active_gids)
+                or (not s.group_id and s.user_id in active_uids)
+            ]
+            skipped = len(datas) - len(kept)
+            if skipped:
+                logger.info(f"[战双·公告] 跳过 {skipped} 个不活跃订阅")
+            datas = kept
+        except Exception as e:
+            logger.warning(f"[战双·公告] 活跃过滤失败, 不过滤: {e}")
+
     for ann_id in new_ann_need_send:
         try:
             img = await ann_detail_card(ann_id, is_check_time=True)
@@ -161,7 +178,11 @@ async def check_pgr_ann_state():
                     latest_bot = await WavesSubscribe.get_group_bot(subscribe.group_id)
                     if latest_bot and latest_bot != subscribe.bot_self_id:
                         subscribe.bot_self_id = latest_bot
-                await subscribe.send(img)  # type: ignore
+                token = ANN_PUSH_GUARD.set(True)
+                try:
+                    await subscribe.send(img)  # type: ignore
+                finally:
+                    ANN_PUSH_GUARD.reset(token)
                 await asyncio.sleep(random.uniform(1, 3))
         except Exception as e:
             logger.exception(e)
