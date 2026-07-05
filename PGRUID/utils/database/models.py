@@ -6,12 +6,15 @@ from contextvars import ContextVar
 from sqlmodel import Field, select
 from sqlalchemy.sql import and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from gsuid_core.server import on_core_start
 from gsuid_core.utils.database.base_models import BaseIDModel, BaseBotIDModel, with_session
 
 # 从 xwuid 导入数据库模型
 from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.waves_subscribe import (
     WavesSubscribe,
 )
+
+from .auto_migrate import auto_add_missing_columns
 
 # 公告推送期间置位, 群活跃 hook 据此跳过推送自身
 ANN_PUSH_GUARD: ContextVar[bool] = ContextVar("pgr_ann_push_guard", default=False)
@@ -237,3 +240,8 @@ class PGRUserActivity(BaseBotIDModel, table=True):
         )
         result = await session.execute(sql)
         return {uid for uid in result.scalars().all() if uid}
+
+
+@on_core_start
+async def _pgr_auto_migrate():
+    await auto_add_missing_columns(__name__, log_prefix="[战双·补列]")
