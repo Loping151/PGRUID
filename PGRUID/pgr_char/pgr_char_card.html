@@ -584,7 +584,7 @@
                             <div class="red-bar-decor-thick"></div>
                             <div class="red-bar-decor-thin"></div>
                         </div>
-                        <div class="red-bar-stars">{{ stars }}</div>
+                        <div class="red-bar-stars">{{ "★" * (weapon.quality or 0) }}</div>
                     </div>
                 </div>
             </div>
@@ -634,7 +634,7 @@
                             <div class="red-bar-decor-thick"></div>
                             <div class="red-bar-decor-thin"></div>
                         </div>
-                        <div class="red-bar-stars">{{ "★" * (partner.quality or 0) }}</div>
+                        <div class="red-bar-stars">{{ "★" * (partner.star or 0) }}</div>
                     </div>
                 </div>
             </div>

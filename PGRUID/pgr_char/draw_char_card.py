@@ -289,7 +289,7 @@ async def draw_char_card(
             "level": char.partner.level if char.partner else 0,
             "grade": char.partner.grade if char.partner else "",
             "gradeInfo": _get_grade_info(char.partner.grade or "") if char.partner else _get_grade_info(""),
-            "quality": char.partner.quality if char.partner else 0,
+            "star": char.partner.partner.grade if (char.partner and char.partner.partner) else 0,
             "skills": partner_skills,
         },
         "chipSuits": chip_suits,
@@ -335,9 +335,6 @@ async def draw_char_card(
 
     # 品级渐变 class
     context["gradeInfo"] = _get_grade_info(char.grade or "")
-
-    # 星级
-    context["stars"] = "★" * (char.quality or 0)
 
     if not PLAYWRIGHT_AVAILABLE:
         if not WutheringWavesConfig.get_config("RemoteRenderEnable").data:
