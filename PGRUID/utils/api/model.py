@@ -88,6 +88,15 @@ class PGRHalfYearData(PGRBaseModel):
     perMonthList: Optional[List[PGRMonthResource]] = Field(default_factory=list)
 
 
+# ===== currentMonth =====
+
+class PGRCurrentMonthData(PGRBaseModel):
+    """当前持有资源"""
+    currentBlackCard: Optional[int] = 0
+    currentDevelopResource: Optional[int] = 0
+    currentTradeCredit: Optional[int] = 0
+
+
 # ===== roleIndex =====
 
 class PGRCharacter(PGRBaseModel):

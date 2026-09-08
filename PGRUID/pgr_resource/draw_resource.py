@@ -1,6 +1,6 @@
 """战双资源看板
 
-请求 halfOfYear，渲染半年资源收入看板
+请求 halfOfYear + currentMonth，渲染当前资源与半年收入看板
 """
 from pathlib import Path
 from typing import Union
@@ -36,9 +36,10 @@ async def draw_resource_img(ev, uid: str) -> Union[bytes, str]:
     user_pref = await get_hide_uid_pref(uid, user_id, bot_id)
 
     import asyncio
-    half_year, account = await asyncio.gather(
+    half_year, account, current = await asyncio.gather(
         pgr_api.get_half_year_data(uid, ck),
         pgr_api.get_account_data(uid, ck),
+        pgr_api.get_current_month_data(uid, ck),
     )
 
     if not half_year:
@@ -75,6 +76,11 @@ async def draw_resource_img(ev, uid: str) -> Union[bytes, str]:
         "totalBlackCard": half_year.totalBlackCard,
         "totalDevelopResource": half_year.totalDevelopResource,
         "totalTradeCredit": half_year.totalTradeCredit,
+        "current": {
+            "blackCard": current.currentBlackCard,
+            "developResource": current.currentDevelopResource,
+            "tradeCredit": current.currentTradeCredit,
+        } if current else None,
         "months": [],
     }
 

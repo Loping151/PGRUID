@@ -17,6 +17,7 @@ from .api import (
     BASE_DATA_URL,
     DAILY_DATA_URL,
     HALF_YEAR_URL,
+    CURRENT_MONTH_URL,
     ROLE_INDEX_URL,
     CHARACTER_FASHION_URL,
     WEAPON_FASHION_URL,
@@ -32,6 +33,7 @@ from .model import (
     PGRBaseData,
     PGRDailyData,
     PGRHalfYearData,
+    PGRCurrentMonthData,
     PGRRoleIndexData,
     PGRFashionData,
     PGRWeaponFashionData,
@@ -338,16 +340,27 @@ class PGRApi:
             return PGRFashionData.model_validate(res.data)
         return None
 
+    async def _resource_request(self, url: str, role_id: str, token: str) -> KuroApiResp:
+        headers = await get_base_header()
+        headers["token"] = token
+        return await self._request(url, headers, {"roleId": role_id})
+
     async def get_half_year_data(
         self, role_id: str, token: str
     ) -> Optional[PGRHalfYearData]:
         """获取战双半年资源汇总（黑卡/研发资源/商店信用）"""
-        headers = await get_base_header()
-        headers["token"] = token
-        data = {"roleId": role_id}
-        res = await self._request(HALF_YEAR_URL, headers, data)
+        res = await self._resource_request(HALF_YEAR_URL, role_id, token)
         if res.success and res.data:
             return PGRHalfYearData.model_validate(res.data)
+        return None
+
+    async def get_current_month_data(
+        self, role_id: str, token: str
+    ) -> Optional[PGRCurrentMonthData]:
+        """获取战双当前持有资源"""
+        res = await self._resource_request(CURRENT_MONTH_URL, role_id, token)
+        if res.success and res.data:
+            return PGRCurrentMonthData.model_validate(res.data)
         return None
 
     async def get_weapon_fashion(

@@ -247,6 +247,24 @@
         </div>
     </div>
 
+    {% if current %}
+    <!-- Title -->
+    <div class="section-title-bar">
+        <img src="{{ titleBgB64 }}">
+        <span>当前资源</span>
+    </div>
+
+    <!-- Top Banner: 当前持有 -->
+    <div class="top-section">
+        <img src="{{ topBannerB64 }}" class="top-banner">
+    </div>
+    <div class="top-values">
+        <span class="top-val">{{ current.blackCard }}</span>
+        <span class="top-val">{{ current.developResource }}</span>
+        <span class="top-val">{{ current.tradeCredit }}</span>
+    </div>
+    {% endif %}
+
     <!-- Title -->
     <div class="section-title-bar">
         <img src="{{ titleBgB64 }}">
