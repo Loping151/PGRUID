@@ -90,10 +90,20 @@ class PGRHalfYearData(PGRBaseModel):
 
 # ===== currentMonth =====
 
+class PGRDevelopResourceDetail(PGRBaseModel):
+    """研发资源分项"""
+    roleDevelopNum: Optional[int] = 0
+    weaponDevelopNum: Optional[int] = 0
+    assistDevelopNum: Optional[int] = 0
+    baseRoleNum: Optional[int] = 0
+    baseWeaponNum: Optional[int] = 0
+
+
 class PGRCurrentMonthData(PGRBaseModel):
     """当前持有资源"""
     currentBlackCard: Optional[int] = 0
     currentDevelopResource: Optional[int] = 0
+    currentDevelopResourceDetailed: Optional[PGRDevelopResourceDetail] = None
     currentTradeCredit: Optional[int] = 0
 
 

@@ -3,7 +3,7 @@
 请求 halfOfYear + currentMonth，渲染当前资源与半年收入看板
 """
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from gsuid_core.logger import logger
 from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
@@ -22,8 +22,29 @@ from plugins.XutheringWavesUID.XutheringWavesUID.utils.image import get_event_av
 from jinja2 import Environment, FileSystemLoader
 
 IMGS_PATH = Path(__file__).parent / "imgs"
+DEVELOP_ITEMS = (
+    ("roleDevelopNum", "角色", "研发", "#dfa32f"),
+    ("weaponDevelopNum", "武器", "研发", "#db5741"),
+    ("assistDevelopNum", "辅助机", "研发", "#1ccab8"),
+    ("baseRoleNum", "基准", "角色", "#d666ea"),
+    ("baseWeaponNum", "基准", "武器", "#1594ec"),
+)
 _TEMPLATE_DIR = Path(__file__).parent
 pgr_resource_templates = Environment(loader=FileSystemLoader([str(_TEMPLATE_DIR)]))
+
+
+def build_develop_detail(detail) -> Optional[dict]:
+    if not detail:
+        return None
+    values = [getattr(detail, key) or 0 for key, *_ in DEVELOP_ITEMS]
+    max_val = max(values) or 1
+    return {
+        "total": sum(values),
+        "items": [
+            {"label": label, "sub": sub, "color": color, "value": v, "pct": round(v / max_val * 100, 1)}
+            for (_, label, sub, color), v in zip(DEVELOP_ITEMS, values)
+        ],
+    }
 
 
 async def draw_resource_img(ev, uid: str) -> Union[bytes, str]:
@@ -76,10 +97,12 @@ async def draw_resource_img(ev, uid: str) -> Union[bytes, str]:
         "totalBlackCard": half_year.totalBlackCard,
         "totalDevelopResource": half_year.totalDevelopResource,
         "totalTradeCredit": half_year.totalTradeCredit,
+        "developBgB64": image_to_base64(IMGS_PATH / "developBg.png"),
         "current": {
             "blackCard": current.currentBlackCard,
             "developResource": current.currentDevelopResource,
             "tradeCredit": current.currentTradeCredit,
+            "developDetail": build_develop_detail(current.currentDevelopResourceDetailed),
         } if current else None,
         "months": [],
     }

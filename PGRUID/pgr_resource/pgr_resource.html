@@ -169,6 +169,69 @@
     .top-val:nth-child(2) { left: 435px; }
     .top-val:nth-child(3) { left: 775px; }
 
+    /* ===== 研发资源明细 ===== */
+    .develop-card {
+        position: relative;
+        width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        color: #333;
+    }
+    .develop-card .develop-bg {
+        width: 100%;
+        display: block;
+    }
+    .develop-total {
+        position: absolute;
+        top: 21.3%;
+        left: 0; right: 0;
+        text-align: center;
+        font-size: 26px;
+        font-weight: bold;
+    }
+    .develop-chart {
+        position: absolute;
+        left: 4%; right: 4%;
+        top: 29%; bottom: 27%;
+        display: flex;
+    }
+    .develop-col {
+        flex: 1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-top: 44px;
+    }
+    .develop-bar {
+        position: relative;
+        width: 35%;
+        border-radius: 2px 2px 0 0;
+    }
+    .develop-val {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 6px;
+        white-space: nowrap;
+        font-size: 26px;
+        font-weight: bold;
+        font-family: 'Oswald', 'JetBrains Mono', sans-serif;
+    }
+    .develop-legend {
+        position: absolute;
+        left: 4%; right: 4%;
+        top: 78.5%;
+        display: flex;
+    }
+    .develop-legend-item {
+        flex: 1;
+        text-align: center;
+        line-height: 1.25;
+    }
+    .develop-legend-item .l1 { display: block; font-size: 30px; font-weight: bold; }
+    .develop-legend-item .l2 { display: block; font-size: 22px; }
+
     /* ===== Month Rows ===== */
     .month-row {
         position: relative;
@@ -263,6 +326,27 @@
         <span class="top-val">{{ current.developResource }}</span>
         <span class="top-val">{{ current.tradeCredit }}</span>
     </div>
+
+    {% if current.developDetail %}
+    <div class="develop-card">
+        <img src="{{ developBgB64 }}" class="develop-bg">
+        <div class="develop-total">总数{{ current.developDetail.total }}</div>
+        <div class="develop-chart">
+            {% for d in current.developDetail["items"] %}
+            <div class="develop-col">
+                <div class="develop-bar" style="height: {{ d.pct }}%; background: {{ d.color }};">
+                    <div class="develop-val">{{ d.value }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="develop-legend">
+            {% for d in current.developDetail["items"] %}
+            <div class="develop-legend-item"><span class="l1">{{ d.label }}</span><span class="l2">{{ d.sub }}</span></div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
     {% endif %}
 
     <!-- Title -->
