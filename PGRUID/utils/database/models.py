@@ -7,7 +7,7 @@ from sqlmodel import Field, select
 from sqlalchemy.sql import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from gsuid_core.server import on_core_start
-from gsuid_core.utils.database.base_models import BaseIDModel, BaseBotIDModel, with_session
+from gsuid_core.utils.database.base_models import BaseIDModel, BaseBotIDModel, with_read_session, with_session
 
 # 从 xwuid 导入数据库模型
 from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.waves_subscribe import (
@@ -163,6 +163,16 @@ class PGRGroupActivity(BaseBotIDModel, table=True):
 
     @classmethod
     @with_session
+    async def update_many(
+        cls: Type[T_PGRGroupActivity],
+        _session: AsyncSession,
+        rows: List[tuple[str, str, str]],
+    ) -> None:
+        for group_id, bot_id, bot_self_id in rows:
+            await cls.update_group_activity(group_id, bot_id, bot_self_id)
+
+    @classmethod
+    @with_read_session
     async def get_active_group_ids(
         cls: Type[T_PGRGroupActivity],
         session: AsyncSession,
@@ -225,6 +235,16 @@ class PGRUserActivity(BaseBotIDModel, table=True):
 
     @classmethod
     @with_session
+    async def update_many(
+        cls: Type[T_PGRUserActivity],
+        _session: AsyncSession,
+        rows: List[tuple[str, str, str]],
+    ) -> None:
+        for user_id, bot_id, bot_self_id in rows:
+            await cls.update_user_activity(user_id, bot_id, bot_self_id)
+
+    @classmethod
+    @with_read_session
     async def get_active_user_ids(
         cls: Type[T_PGRUserActivity],
         session: AsyncSession,
