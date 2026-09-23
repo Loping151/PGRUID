@@ -23,29 +23,27 @@ from .utils.plugin_checker import is_from_pgr_plugin
 _group_activity_buffer: dict[str, tuple[str, str, str]] = {}
 _user_activity_buffer: dict[str, tuple[str, str, str]] = {}
 _FLUSH_INTERVAL = 60
-_ACTIVITY_CHUNK = 400
+_FLUSH_CHUNK = 200
+
+
+async def _flush_rows(buffer: dict, writer, label: str):
+    if not buffer:
+        return
+    items = list(buffer.items())
+    buffer.clear()
+    for start in range(0, len(items), _FLUSH_CHUNK):
+        chunk = items[start : start + _FLUSH_CHUNK]
+        try:
+            await writer([row for _, row in chunk])
+        except Exception as e:
+            for key, row in chunk:
+                buffer.setdefault(key, row)
+            logger.warning(f"[战双·插件] {label}写入失败, 下轮重试: {e}")
 
 
 async def _flush_activity_buffer():
-    if _group_activity_buffer:
-        pending = list(_group_activity_buffer.values())
-        _group_activity_buffer.clear()
-        for start in range(0, len(pending), _ACTIVITY_CHUNK):
-            chunk = pending[start : start + _ACTIVITY_CHUNK]
-            try:
-                await PGRGroupActivity.update_many(chunk)
-            except Exception as e:
-                logger.warning(f"[战双·插件] 批量群活跃度写入失败: {e}")
-
-    if _user_activity_buffer:
-        user_pending = list(_user_activity_buffer.values())
-        _user_activity_buffer.clear()
-        for start in range(0, len(user_pending), _ACTIVITY_CHUNK):
-            chunk = user_pending[start : start + _ACTIVITY_CHUNK]
-            try:
-                await PGRUserActivity.update_many(chunk)
-            except Exception as e:
-                logger.warning(f"[战双·插件] 批量用户活跃度写入失败: {e}")
+    await _flush_rows(_group_activity_buffer, PGRGroupActivity.update_many, "群活跃度")
+    await _flush_rows(_user_activity_buffer, PGRUserActivity.update_many, "用户活跃度")
 
 
 _shutdown_event = asyncio.Event()

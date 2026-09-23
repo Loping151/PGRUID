@@ -1,16 +1,21 @@
 """PGRUID 数据库模型"""
 import time
-from typing import Dict, List, Set, Type, Optional, TypeVar
+from typing import List, Set, Type, Optional, TypeVar
 from contextvars import ContextVar
 
 from sqlmodel import Field, select
 from sqlalchemy.sql import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from gsuid_core.server import on_core_start
-from gsuid_core.utils.database.base_models import BaseIDModel, BaseBotIDModel, with_read_session, with_session
+from gsuid_core.utils.database.base_models import BaseIDModel, BaseBotIDModel, with_session
+
+try:
+    from gsuid_core.utils.database.base_models import with_read_session
+except ImportError:
+    with_read_session = with_session
 
 # 从 xwuid 导入数据库模型
-from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.waves_subscribe import (
+from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.waves_subscribe import (  # noqa: F401
     WavesSubscribe,
 )
 
@@ -137,6 +142,26 @@ class PGRGroupActivity(BaseBotIDModel, table=True):
         bot_id: str,
         bot_self_id: str,
     ) -> bool:
+        return await cls._touch(session, group_id, bot_id, bot_self_id)
+
+    @classmethod
+    @with_session
+    async def update_many(
+        cls: Type[T_PGRGroupActivity],
+        session: AsyncSession,
+        rows: List[tuple[str, str, str]],
+    ) -> None:
+        for group_id, bot_id, bot_self_id in rows:
+            await cls._touch(session, group_id, bot_id, bot_self_id)
+
+    @classmethod
+    async def _touch(
+        cls: Type[T_PGRGroupActivity],
+        session: AsyncSession,
+        group_id: str,
+        bot_id: str,
+        bot_self_id: str,
+    ) -> bool:
         current_time = int(time.time())
         sql = select(cls).where(
             and_(
@@ -160,16 +185,6 @@ class PGRGroupActivity(BaseBotIDModel, table=True):
                 )
             )
         return True
-
-    @classmethod
-    @with_session
-    async def update_many(
-        cls: Type[T_PGRGroupActivity],
-        _session: AsyncSession,
-        rows: List[tuple[str, str, str]],
-    ) -> None:
-        for group_id, bot_id, bot_self_id in rows:
-            await cls.update_group_activity(group_id, bot_id, bot_self_id)
 
     @classmethod
     @with_read_session
@@ -209,6 +224,26 @@ class PGRUserActivity(BaseBotIDModel, table=True):
         bot_id: str,
         bot_self_id: str,
     ) -> bool:
+        return await cls._touch(session, user_id, bot_id, bot_self_id)
+
+    @classmethod
+    @with_session
+    async def update_many(
+        cls: Type[T_PGRUserActivity],
+        session: AsyncSession,
+        rows: List[tuple[str, str, str]],
+    ) -> None:
+        for user_id, bot_id, bot_self_id in rows:
+            await cls._touch(session, user_id, bot_id, bot_self_id)
+
+    @classmethod
+    async def _touch(
+        cls: Type[T_PGRUserActivity],
+        session: AsyncSession,
+        user_id: str,
+        bot_id: str,
+        bot_self_id: str,
+    ) -> bool:
         current_time = int(time.time())
         sql = select(cls).where(
             and_(
@@ -232,16 +267,6 @@ class PGRUserActivity(BaseBotIDModel, table=True):
                 )
             )
         return True
-
-    @classmethod
-    @with_session
-    async def update_many(
-        cls: Type[T_PGRUserActivity],
-        _session: AsyncSession,
-        rows: List[tuple[str, str, str]],
-    ) -> None:
-        for user_id, bot_id, bot_self_id in rows:
-            await cls.update_user_activity(user_id, bot_id, bot_self_id)
 
     @classmethod
     @with_read_session
