@@ -5,7 +5,7 @@ from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 
 from ..pgr_config import PREFIX
-from ..utils.util import get_hide_uid_pref, hide_uid
+from ..utils.util import get_hide_uid_pref, hide_uid, use_longest_keyword
 
 # 直接复用 xwuid 的数据库和登录
 from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind, WavesUser
@@ -54,18 +54,22 @@ async def pgr_login_msg(bot: Bot, ev: Event):
 
 # ===== 绑定/切换/删除/查看 =====
 
+_PGR_BIND_MSG_KEYWORDS = (
+    "绑定",
+    "切换",
+    "删除全部UID",
+    "删除全部特征码",
+    "删除",
+    "查看",
+)
+
+
 @pgr_bind_uid.on_command(
-    (
-        "绑定",
-        "切换",
-        "删除全部UID",
-        "删除全部特征码",
-        "删除",
-        "查看",
-    ),
+    _PGR_BIND_MSG_KEYWORDS,
     block=True,
 )
 async def pgr_bind_msg(bot: Bot, ev: Event):
+    use_longest_keyword(ev, _PGR_BIND_MSG_KEYWORDS)
     uid = ''.join(filter(str.isdigit, ev.text.strip()))
     qid = ev.user_id
 
