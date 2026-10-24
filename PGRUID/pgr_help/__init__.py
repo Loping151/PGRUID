@@ -12,7 +12,7 @@ sv_pgr_help = SV("PGR帮助")
 
 
 @sv_pgr_help.on_fullmatch(
-    ("帮助", "help", "bz"),
+    ("帮助", "help", "bz", "菜单", "菜單", "功能"),
     block=True,
     to_ai="""返回 PGRUID（战双：帕弥什）插件的命令帮助图。
 
