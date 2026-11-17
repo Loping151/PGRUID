@@ -7,7 +7,7 @@ from gsuid_core.logger import logger
 from plugins.XutheringWavesUID.XutheringWavesUID.utils.at_help import ruser_id
 
 from ..utils.api.requests import pgr_api
-from ..utils.util import get_hide_uid_pref, hide_uid
+from ..utils.util import get_hide_uid_pref, hide_uid, rank_fields
 from ..utils.image import pic_download_from_url
 from ..utils.path import ROLE_ICON_PATH, GAMEMODE_PATH
 from ..pgr_config import PREFIX
@@ -159,8 +159,7 @@ async def draw_stronghold_img(ev, uid: str) -> Union[bytes, str]:
             "roleName": (account.roleName if account else None) or "暂无",
             "serverName": (account.serverName if account else None) or "暂无",
             "rank": account.rank if account else 0,
-            "rank_label": "勋阶" if (account and account.rank) else "等级",
-            "rank_val": account.rank if (account and account.rank) else (account.level if account else 0),
+            **rank_fields(account),
             "headB64": head_b64,
         },
         "headerBgB64": image_to_base64(IMGS_PATH / "head.png"),

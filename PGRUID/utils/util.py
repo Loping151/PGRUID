@@ -44,3 +44,10 @@ def use_longest_keyword(ev, keywords: tuple[str, ...]) -> None:
         if tail and k.startswith(ev.command) and text.startswith(tail):
             ev.command, ev.text = k, text[len(tail):].strip()
             return
+
+
+def rank_fields(account) -> dict:
+    level = (account.level if account else 0) or 0
+    if level < 120:
+        return {"rank_label": "等级", "rank_val": level}
+    return {"rank_label": "勋阶", "rank_val": account.rank or 1}

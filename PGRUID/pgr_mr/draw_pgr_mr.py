@@ -15,6 +15,7 @@ from gsuid_core.utils.image.convert import convert_img
 
 from ..utils.api.model import PGRDailyData, PGRAccountData
 from ..utils.api.requests import pgr_api
+from ..utils.util import rank_fields
 from ..utils.database.models import PGRUserSettings
 
 from plugins.XutheringWavesUID.XutheringWavesUID.utils.database.models import WavesBind
@@ -252,8 +253,7 @@ async def _draw_single_mr(ev: Event, valid: Dict) -> Optional[Image.Image]:
         "uid": uid,
         "level": (account.level if account else None) or 0,
         "rank": (account.rank if account else None) or 0,
-        "rank_label": "勋阶" if account and account.rank else "等级",
-        "rank_val": (account.rank if account and account.rank else None) or (account.level if account else None) or 0,
+        **rank_fields(account),
         "server_name": (account.serverName if account else None) or "暂无",
         "avatar_url": head_b64,
         "avatar_frame_url": avatar_frame_b64,

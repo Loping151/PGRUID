@@ -10,7 +10,7 @@ from gsuid_core.logger import logger
 
 from ..utils.player_store import read_player_json_sync, write_player_json_sync
 from ..utils.api.requests import pgr_api
-from ..utils.util import get_hide_uid_pref, hide_uid
+from ..utils.util import get_hide_uid_pref, hide_uid, rank_fields
 from ..utils.image import pic_download_from_url
 from ..utils.path import (
     ROLE_ICON_PATH,
@@ -307,8 +307,7 @@ async def draw_char_card(
         "roleName": (account.roleName if account else None) or "暂无",
         "serverName": (account.serverName if account else None) or "暂无",
         "rank": account.rank if account else 0,
-        "rank_label": "勋阶" if (account and account.rank) else "等级",
-        "rank_val": account.rank if (account and account.rank) else (account.level if account else 0),
+        **rank_fields(account),
         "headB64": head_b64,
     }
 
